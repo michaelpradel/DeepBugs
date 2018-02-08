@@ -1,0 +1,312 @@
+{
+    "ArrayExpression": [
+        0,
+        0,
+        1,
+        0,
+        1,
+        1,
+        0,
+        1
+    ],
+    "ArrowFunctionExpression": [
+        1,
+        0,
+        1,
+        1,
+        1,
+        0,
+        1,
+        1
+    ],
+    "AssignmentExpression": [
+        1,
+        1,
+        0,
+        0,
+        1,
+        1,
+        0,
+        1
+    ],
+    "BinaryExpression": [
+        0,
+        1,
+        1,
+        1,
+        1,
+        0,
+        0,
+        0
+    ],
+    "BlockStatement": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0
+    ],
+    "CallExpression": [
+        1,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        1
+    ],
+    "ConditionalExpression": [
+        1,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        1
+    ],
+    "DoWhileStatement": [
+        1,
+        0,
+        1,
+        1,
+        1,
+        1,
+        0,
+        1
+    ],
+    "ExpressionStatement": [
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        1
+    ],
+    "ForInStatement": [
+        1,
+        0,
+        1,
+        0,
+        1,
+        0,
+        1,
+        0
+    ],
+    "ForStatement": [
+        0,
+        1,
+        1,
+        0,
+        1,
+        1,
+        0,
+        1
+    ],
+    "IfStatement": [
+        1,
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        0
+    ],
+    "LabeledStatement": [
+        0,
+        1,
+        0,
+        1,
+        1,
+        1,
+        0,
+        1
+    ],
+    "LogicalExpression": [
+        0,
+        1,
+        1,
+        1,
+        0,
+        1,
+        0,
+        0
+    ],
+    "MemberExpression": [
+        0,
+        1,
+        1,
+        0,
+        1,
+        1,
+        1,
+        0
+    ],
+    "NewExpression": [
+        1,
+        0,
+        0,
+        1,
+        1,
+        1,
+        1,
+        1
+    ],
+    "ObjectExpression": [
+        0,
+        0,
+        1,
+        1,
+        1,
+        0,
+        0,
+        1
+    ],
+    "Program": [
+        1,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+    ],
+    "Property": [
+        0,
+        0,
+        1,
+        1,
+        0,
+        1,
+        0,
+        0
+    ],
+    "ReturnStatement": [
+        0,
+        1,
+        0,
+        1,
+        1,
+        0,
+        0,
+        1
+    ],
+    "SequenceExpression": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        1,
+        1
+    ],
+    "SwitchCase": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        1
+    ],
+    "SwitchStatement": [
+        1,
+        1,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+    ],
+    "TemplateLiteral": [
+        1,
+        1,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0
+    ],
+    "ThrowStatement": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1
+    ],
+    "UnaryExpression": [
+        0,
+        0,
+        1,
+        0,
+        1,
+        0,
+        0,
+        1
+    ],
+    "UpdateExpression": [
+        1,
+        0,
+        1,
+        1,
+        1,
+        1,
+        0,
+        0
+    ],
+    "VariableDeclaration": [
+        0,
+        1,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0
+    ],
+    "VariableDeclarator": [
+        0,
+        0,
+        1,
+        0,
+        1,
+        0,
+        1,
+        0
+    ],
+    "WhileStatement": [
+        1,
+        1,
+        0,
+        1,
+        1,
+        0,
+        0,
+        1
+    ],
+    "YieldExpression": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        1,
+        0,
+        1
+    ]
+}

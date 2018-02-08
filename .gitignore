@@ -17,6 +17,10 @@ encoded_tokens*.npy
 token_to*.json
 experiment_*
 rb-*.js
-*.json
 *_model_*
+calls*.json
+context_token*.json
+fileIDs.json
+idsLits*.json
+main_token*.json
 poss_anomalies.txt
