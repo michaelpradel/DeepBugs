@@ -1,3 +1,4 @@
+import glob
 from multiprocessing import Pool
 from itertools import product
 from TokenWithASTContextToNumbers import *
@@ -11,11 +12,16 @@ nb_processes = 30
 if __name__ == '__main__':
     # arguments: <list of .json files with tokens and contexts> 
     if len(sys.argv) > 1:
-        filepaths = sys.argv[1:]
+        filepaths = sys.argv[1]
     else:
-        filepaths = ['idsLitsWithASTFamily_1518650188081.json', 'idsLitsWithASTFamily_1518650188168.json']
+        filepaths = 'idsLitsWithASTFamily_*.json'
     
-    all_raw_data_paths = list(map(lambda f: join(getcwd(), f), filepaths))
+    all_raw_data_paths = []
+    for f in glob.glob(filepaths):
+        all_raw_data_paths.append(f)  
+
+
+    all_raw_data_paths = list(map(lambda f: join(getcwd(), f), all_raw_data_paths))
     total_files = len(all_raw_data_paths)
     print("Total files: "+str(total_files))
 
