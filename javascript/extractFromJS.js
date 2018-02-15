@@ -122,7 +122,7 @@ The <what> argument must be one of:
         if (fileListFile === "all") {
             jsFiles = relativeJsFiles.map(f => dir + (dir.endsWith("/") ? "" : "/") + f);
         } else {
-            const filesToConsider = new Set(fs.readFileSync(fileListFile, {encoding:"utf8"}).split("\n"));
+            const filesToConsider = new Set(fs.readFileSync(fileListFile, {encoding:"utf8"}).split("\n").map(f => f.replace("\r", "")));
             jsFiles = relativeJsFiles.map(f => dir + (dir.endsWith("/") ? "" : "/") + f).filter(p => filesToConsider.has(p));
         }
         console.log("Total number of files: " + jsFiles.length);
