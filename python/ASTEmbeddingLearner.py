@@ -10,6 +10,7 @@ from os import getcwd
 from os.path import join
 import sys
 import time
+import glob
 
 from keras.layers.core import Dense
 from keras.models import Model
@@ -98,8 +99,22 @@ def batch_generator(xy_pair_generator):
 if __name__ == '__main__':
     # arguments: <main_token_to_nb_file> <list of files with tokens and contexts>
     
-    token_to_nb_file = sys.argv[1]
-    data_paths = list(map(lambda f: join(getcwd(), f), sys.argv[2:]))
+    if len(sys.argv) >= 3:
+        token_to_nb_file_pattern = sys.argv[1]
+        data_path_pattern = sys.argv[2]
+    else:
+        token_to_nb_file_pattern = 'main_token_to_number_*.json'
+        data_path_pattern = 'encoded_tokens_with_context_*.npy'
+
+    for f in glob.glob(token_to_nb_file_pattern):
+        token_to_nb_file = f
+        break
+
+    data_paths = []
+    for f in glob.glob(data_path_pattern):
+        data_paths.append(f)   
+
+    data_paths = list(map(lambda f: join(getcwd(), f), data_paths))
     if len(data_paths) is 0:
         print("Must pass token_to_nb files and at least one data file")
         sys.exit(1)

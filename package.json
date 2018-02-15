@@ -1,0 +1,15 @@
+{
+  "name": "deepbug",
+  "version": "1.0.0",
+  "description": "Deep Bug",
+  "engines": {
+    "node": "6.9.1"
+  },
+  "author": "Xi Cheng <chengxi@microsoft.com>",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "acorn": "5.4.1",
+    "estraverse": "4.2.0",
+    "walk-sync": "0.3.2"
+  }
+}

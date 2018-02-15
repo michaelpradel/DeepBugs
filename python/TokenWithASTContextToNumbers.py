@@ -8,6 +8,7 @@ import sys
 import json
 from os.path import join
 from os import getcwd
+from os import listdir
 from collections import Counter
 import math
 import numpy as np
@@ -15,11 +16,7 @@ import time
 from multiprocessing import Pool
 import random
 
-kept_main_tokens = 10000
-kept_context_tokens = 1000
-max_context_tokens_per_category = 10
-
-nb_processes = 30
+MAX_CONTEXT_TOKENS_PER_CATEGORY = 10
 
 kinds_of_context = ["parent", "grandParent", "siblings", "uncles", "cousins", "nephews"]
 kinds_of_context_lists = ["siblings", "uncles", "cousins", "nephews"]
@@ -31,9 +28,85 @@ class RawDataReader(object):
     def __iter__(self):
         for data_path in self.data_paths:
             print("Reading file " + data_path)
-            with open(data_path) as file:
+            with open(data_path, encoding="utf8") as file:
                 items = json.load(file)
                 yield items
+
+def count_tokens(data_paths):
+    print("Worker starting to read "+str(len(data_paths))+" files")
+    reader = RawDataReader(data_paths)
+    main_tokens = Counter()
+    context_tokens = Counter()
+    for tokens_with_context in reader:
+        for token_with_context in tokens_with_context:
+            token = token_with_context["token"]
+            context = token_with_context["context"]
+            main_tokens[token] += 1
+            for kind_of_context in kinds_of_context:
+                if isinstance(context[kind_of_context], str):
+                    context_tokens[context[kind_of_context]] += 1
+                else:
+                    for token in context[kind_of_context]:
+                        context_tokens[token] += 1
+    return (main_tokens, context_tokens)   
+
+
+# parallelize the encoding
+def encode_tokens_with_context(data_paths, frequent_tokens):
+
+    frequent_main_tokens, frequent_context_tokens = frequent_tokens
+    print("Data encoding worker called with "+str(len(data_paths))+" files")
+    reader = RawDataReader(data_paths)
+    encoded_tokens_with_context = []
+    for tokens_with_context in reader:
+        # replace infrequent tokens with "unknown"
+        for token_with_context in tokens_with_context:
+            token = token_with_context["token"]
+            # encoding:
+            #  - first element  = number of main token
+            #  - second element = number of parent token
+            #  - third element  = position in parent
+            #  - fourth element = number of grand parent token
+            #  - fifth element  = position in grand parent
+            #  - next MAX_CONTEXT_TOKENS_PER_CATEGORY elements = numbers of sibling tokens
+            #  - next MAX_CONTEXT_TOKENS_PER_CATEGORY elements = numbers of uncle tokens
+            #  - next MAX_CONTEXT_TOKENS_PER_CATEGORY elements = numbers of cousin tokens
+            #  - next MAX_CONTEXT_TOKENS_PER_CATEGORY elements = numbers of nephew tokens
+            # total nb of elements: 5 + 4 * MAX_CONTEXT_TOKENS_PER_CATEGORY
+            encoded_main_token = encode(frequent_main_tokens, token)
+            if encoded_main_token != 0:  # ignore "unknown" tokens (encoded as 0)
+                encoded = np.empty(5 + 4 * MAX_CONTEXT_TOKENS_PER_CATEGORY, dtype=int)
+                encoded[0] = encoded_main_token
+            
+                context = token_with_context["context"]
+                encoded[1] = encode(frequent_context_tokens, context["parent"])
+                encoded[2] = context["positionInParent"]
+                encoded[3] = encode(frequent_context_tokens, context["grandParent"])
+                encoded[4] = context["positionInGrandParent"]
+                next_idx = 5
+                for kind_of_context in kinds_of_context_lists:
+                    remaining_slots = MAX_CONTEXT_TOKENS_PER_CATEGORY
+                    for token in context[kind_of_context]:
+                        encoded[next_idx] = encode(frequent_context_tokens, token)
+                        next_idx += 1
+                        remaining_slots -= 1
+                        if remaining_slots == 0:
+                            break
+                    for _ in range(0, remaining_slots):
+                        encoded[next_idx] = -1
+                        next_idx += 1
+                
+                encoded_tokens_with_context.append(encoded)
+            
+                # occasionally save and forget (to avoid filling up all memory)
+                if len(encoded_tokens_with_context) % 1000000 is 0:
+                    file_name = save_tokens_with_context(encoded_tokens_with_context)
+                    print("Have written data to " + file_name)
+        
+                    encoded_tokens_with_context = []
+        
+    file_name = save_tokens_with_context(encoded_tokens_with_context)
+    print("Have written data to " + file_name)
 
 def analyze_histograms(all_tokens):
     total = sum(all_tokens.values())
@@ -86,124 +159,3 @@ def encode(frequent_to_number, token):
 def chunks(li, n):
     for i in range(0, len(li), n):
         yield li[i:i + n]
-
-if __name__ == '__main__':
-    # arguments: <list of .json files with tokens and contexts> 
-    
-    all_raw_data_paths = list(map(lambda f: join(getcwd(), f), sys.argv[1:]))
-    total_files = len(all_raw_data_paths)
-    print("Total files: "+str(total_files))
-    if total_files < nb_processes:
-        nb_processes = total_files 
-  
-    # gather tokens (in parallel)
-    def count_tokens(data_paths):
-        print("Worker starting to read "+str(len(data_paths))+" files")
-        reader = RawDataReader(data_paths)
-        main_tokens = Counter()
-        context_tokens = Counter()
-        for tokens_with_context in reader:
-            for token_with_context in tokens_with_context:
-                token = token_with_context["token"]
-                context = token_with_context["context"]
-                main_tokens[token] += 1
-                for kind_of_context in kinds_of_context:
-                    if isinstance(context[kind_of_context], str):
-                        context_tokens[context[kind_of_context]] += 1
-                    else:
-                        for token in context[kind_of_context]:
-                            context_tokens[token] += 1
-        return (main_tokens, context_tokens)    
-
-    pool = Pool(processes=nb_processes)
-    chunksize = round(len(all_raw_data_paths) / nb_processes)
-    counters = pool.map(count_tokens, chunks(all_raw_data_paths, chunksize))
-    
-    # merge counters that were gathered in parallel
-    print("Merging counters...")
-    all_main_tokens = Counter()
-    all_context_tokens = Counter()
-    for main_tokens, context_tokens in counters:
-        all_main_tokens.update(main_tokens)
-        all_context_tokens.update(context_tokens)
-    print("Done with merging counters")
-    
-    # analyze histograms
-    print("Unique main tokens: " + str(len(all_main_tokens)))
-    print("  " + "\n  ".join(str(x) for x in all_main_tokens.most_common(20)))
-    analyze_histograms(all_main_tokens)
-    print()
-    print("Unique context tokens: " + str(len(all_context_tokens)))
-    print("  " + "\n  ".join(str(x) for x in all_context_tokens.most_common(20)))
-    analyze_histograms(all_context_tokens)
-    
-    # replace infrequent tokens w/ placeholder and write number-encoded tokens + contexts to files
-    frequent_main_tokens = frequent_tokens(all_main_tokens, kept_main_tokens)
-    frequent_context_tokens = frequent_tokens(all_context_tokens, kept_context_tokens)
-    
-    save_token_numbers(frequent_main_tokens, "main")
-    save_token_numbers(frequent_context_tokens, "context")
-
-    # parallelize the encoding
-    def encode_tokens_with_context(data_paths):
-        print("Data encoding worker called with "+str(len(data_paths))+" files")
-        reader = RawDataReader(data_paths)
-        encoded_tokens_with_context = []
-        for tokens_with_context in reader:
-            # replace infrequent tokens with "unknown"
-            for token_with_context in tokens_with_context:
-                token = token_with_context["token"]
-                # encoding:
-                #  - first element  = number of main token
-                #  - second element = number of parent token
-                #  - third element  = position in parent
-                #  - fourth element = number of grand parent token
-                #  - fifth element  = position in grand parent
-                #  - next max_context_tokens_per_category elements = numbers of sibling tokens
-                #  - next max_context_tokens_per_category elements = numbers of uncle tokens
-                #  - next max_context_tokens_per_category elements = numbers of cousin tokens
-                #  - next max_context_tokens_per_category elements = numbers of nephew tokens
-                # total nb of elements: 5 + 4 * max_context_tokens_per_category
-                encoded_main_token = encode(frequent_main_tokens, token)
-                if encoded_main_token != 0:  # ignore "unknown" tokens (encoded as 0)
-                    encoded = np.empty(5 + 4 * max_context_tokens_per_category, dtype=int)
-                    encoded[0] = encoded_main_token
-                
-                    context = token_with_context["context"]
-                    encoded[1] = encode(frequent_context_tokens, context["parent"])
-                    encoded[2] = context["positionInParent"]
-                    encoded[3] = encode(frequent_context_tokens, context["grandParent"])
-                    encoded[4] = context["positionInGrandParent"]
-                    next_idx = 5
-                    for kind_of_context in kinds_of_context_lists:
-                        remaining_slots = max_context_tokens_per_category
-                        for token in context[kind_of_context]:
-                            encoded[next_idx] = encode(frequent_context_tokens, token)
-                            next_idx += 1
-                            remaining_slots -= 1
-                            if remaining_slots == 0:
-                                break
-                        for _ in range(0, remaining_slots):
-                            encoded[next_idx] = -1
-                            next_idx += 1
-                    
-                    encoded_tokens_with_context.append(encoded)
-                
-                    # occasionally save and forget (to avoid filling up all memory)
-                    if len(encoded_tokens_with_context) % 1000000 is 0:
-                        file_name = save_tokens_with_context(encoded_tokens_with_context)
-                        print("Have written data to " + file_name)
-            
-                        encoded_tokens_with_context = []
-            
-        file_name = save_tokens_with_context(encoded_tokens_with_context)
-        print("Have written data to " + file_name)
-    
-    print("Encoding data and written it to files...")
-    pool = Pool(processes=nb_processes)
-    pool.map(encode_tokens_with_context, chunks(all_raw_data_paths, chunksize))
-    
-    print("Done")
-        
-    
-    
