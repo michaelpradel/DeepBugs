@@ -29,3 +29,4 @@ main_token*.json
 poss_anomalies.txt
 
 package-lock.json
+settings.json
