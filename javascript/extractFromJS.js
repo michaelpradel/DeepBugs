@@ -145,7 +145,11 @@ The <what> argument must be one of:
             const jsFile = jsFiles[i];
             const fileID = fileToID[jsFile]; // assumption: at most 6 digits long
 
-            visitFile(jsFile, extractor, allData, fileID);
+            if (what !== "tokens") {
+                visitFile(jsFile, extractor, allData, fileID);
+            } else{
+                extractor.visitFile(jsFile, allData);
+            }
         }
         const fileName = what + "_" + Date.now() + ".json";
         console.log("Writing " + allData.length + " items to file " + fileName);
