@@ -27,6 +27,10 @@ class Anomaly(object):
         self.is_bug = is_bug
         self.comment = comment
         
+        # check parsing
+        self.src.split(' : ')[1]
+        self.score.split(" : ")[1]
+        
     def as_string(self):
         elements = [self.score, self.src]
         elements += self.details
@@ -46,6 +50,7 @@ class Anomaly(object):
     
     def numeric_score(self):
         return float(self.score.split(" : ")[1])
+    
 
 def read_inspected():
     inspected_anomalies = []
@@ -62,12 +67,19 @@ def read_x_to_calls(file):
 
 def read_anomalies(anomalies_file):
     anomalies = []
+    ctr = 0
     with open(args.anomalies_file, 'r') as f:
         for anomaly_string in f:
-            anomaly_string = anomaly_string.lstrip().rstrip()
-            score, src, *details = anomaly_string.split(' | ')
-            anomaly = Anomaly(score, src, details)
-            anomalies.append(anomaly)
+            try:
+                ctr += 1
+                anomaly_string = anomaly_string.lstrip().rstrip()
+                score, src, *details = anomaly_string.split(' | ')
+                anomaly = Anomaly(score, src, details)
+                anomalies.append(anomaly)
+            except ValueError:
+                print("Value problem reading line "+str(ctr)+" -- will ignore it")
+            except IndexError:
+                print("Index problem reading line "+str(ctr)+" -- will ignore it")
     return anomalies
 
 def density_normalized_score_rank_of_anomaly(anomaly, file_to_calls, file_to_warnings):

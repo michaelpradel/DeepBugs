@@ -13,6 +13,7 @@ Two usage modes:
 The <what> argument must be one of:
   tokens
   calls
+  callsMissingArg
   assignments
   binOps
   idsLitsWithTokens
@@ -27,7 +28,7 @@ The <what> argument must be one of:
 
     const util = require("./jsExtractionUtil");
 
-    const filesPerParallelInstance = 20;
+    const filesPerParallelInstance = 200;
 
     const fileToIDFileName = "fileIDs.json";
 
@@ -103,7 +104,7 @@ The <what> argument must be one of:
     // read command line arguments
     const args = process.argv.slice(2);
     const what = args[0];
-    if (["tokens", "calls", "assignments", "binOps", "idsLitsWithTokens", "idsLitsWithIds", "idsLitsWithASTFamily"].indexOf(what) === -1) {
+    if (["tokens", "calls", "assignments", "callsMissingArg", "binOps", "idsLitsWithTokens", "idsLitsWithIds", "idsLitsWithASTFamily"].indexOf(what) === -1) {
         console.log(usage);
         process.exit(1);
     }
@@ -131,12 +132,13 @@ The <what> argument must be one of:
     } else if (args[1] === "--files") {
         let extractor;
         if (what === "calls") extractor = require("./extractorOfCalls");
-        else if (what === "assignments") extractor = require("./extractorOfAssignments");
+        else if (what === "assignments") extractor = require("./extractorOfAssignments2");
         else if (what === "tokens") extractor = require("./extractorOfTokens");
         else if (what === "binOps") extractor = require("./extractorOfBinOps");
         else if (what === "idsLitsWithTokens") extractor = require("./extractorOfIdsLitsWithTokens");
         else if (what === "idsLitsWithIds") extractor = require("./extractorOfIdsLitsWithIds");
         else if (what === "idsLitsWithASTFamily") extractor = require("./extractorOfIdsLitsWithASTFamily");
+        else if (what === "callsMissingArg") extractor = require("./extractorOfCallsMissingArg");
 
         const allData = [];
         const jsFiles = args.slice(2);

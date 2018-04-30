@@ -28,8 +28,8 @@ class RawDataReader(object):
         for data_path in self.data_paths:
             print("Reading file " + data_path)
             with open(data_path) as file:
-                calls = json.load(file)
-                yield calls
+                tokens = json.load(file)
+                yield tokens
 
 #standard_tokens = set(["[",  "]",  "{",  "}",  "(",  ")",  ",",  ";",  ":",  ".",  "?",  "=>",  "template",  "...",  "`",  "${",  "=",  "_=",  "++",  "--",  "prefix",  "||",  "&&",  "|",  "^",  "&",  "==",  "!=",  "<",  ">",  "<<",  ">>",  "+",  "-",  "%",  "*",  "/",  "**",  "break",  "case",  "catch",  "continue",  "debugger",  "default",  "do",  "else",  "finally",  "for",  "function",  "if",  "return",  "switch",  "throw",  "try",  "var",  "const",  "while",  "with",  "new",  "this",  "super",  "class",  "extends",  "export",  "import",  "null",  "true",  "false",  "in",  "instanceof",  "typeof",  "void",  "delete"])  
 
@@ -108,6 +108,8 @@ if __name__ == '__main__':
 
     pool = Pool(processes=nb_processes)
     chunksize = round(len(all_raw_data_paths) / nb_processes)
+    if chunksize == 0:
+        chunksize = len(all_raw_data_paths)
     counters = pool.map(count_tokens, chunks(all_raw_data_paths, chunksize))
     
     # merge counters that were gathered in parallel

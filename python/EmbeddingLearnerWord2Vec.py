@@ -4,12 +4,12 @@ Created on Jul 26, 2017
 @author: Michael Pradel
 '''
 
-import json
 import math
 from os import getcwd
 from os.path import join
 import sys
 import time
+import json
 from gensim.models import Word2Vec
 
 nb_tokens_in_context = 20
@@ -30,7 +30,7 @@ class EncodedSequenceReader(object):
                 yield seq
 
 if __name__ == '__main__':
-    # arguments: <token_to_nb_file> <list of .npy files with encoded tokens>
+    # arguments: <token_to_nb_file> <list of .json files with tokens>
     
     token_to_nb_file = sys.argv[1]
     data_paths = list(map(lambda f: join(getcwd(), f), sys.argv[2:]))
@@ -39,7 +39,7 @@ if __name__ == '__main__':
         sys.exit(1)
 
     token_seqs = EncodedSequenceReader(data_paths)
-    model = Word2Vec(token_seqs, min_count=1, window=nb_tokens_in_context/2, size=embedding_size)
+    model = Word2Vec(token_seqs, min_count=1, window=nb_tokens_in_context/2, size=embedding_size, workers=40)
 
     # store the model
     time_stamp = math.floor(time.time() * 1000)
@@ -56,6 +56,5 @@ if __name__ == '__main__':
     token_to_vector_file_name = "token_to_vector_" + str(time_stamp) + ".json"
     with open(token_to_vector_file_name, "w") as file:
         json.dump(token_to_vector, file, sort_keys=True, indent=4)
-    
-    
+       
     

@@ -99,6 +99,16 @@
         1,
         0
     ],
+    "ForOfStatement": [
+        0,
+        0,
+        1,
+        1,
+        0,
+        0,
+        1,
+        1
+    ],
     "ForStatement": [
         0,
         1,

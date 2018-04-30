@@ -14,7 +14,6 @@ import time
 from multiprocessing import Pool
 
 kept_tokens = 10000
-context_length = 20
 
 nb_processes = 30
 
@@ -33,7 +32,7 @@ class RawDataReader(object):
 def analyze_histograms(all_tokens):
     total = sum(all_tokens.values())
     sorted_pairs = all_tokens.most_common()
-    percentages_to_cover = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99]
+    percentages_to_cover = list(map(lambda x: x/100.0,range(1,100)))  #[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99]
     nb_covered = 0
     pairs_covered = 0
     for pair in sorted_pairs:
@@ -48,6 +47,13 @@ def analyze_histograms(all_tokens):
                 percentages_to_cover = percentages_to_cover[1:]
             else:
                 done = True
+                
+    covered_by_kept_tokens = 0
+    for pair in sorted_pairs[:kept_tokens]:
+        covered_by_kept_tokens += pair[1]
+    perc_covered_by_kept_tokens = (covered_by_kept_tokens * 1.0) / total
+    print("----")
+    print(str(covered_by_kept_tokens) + " most frequent terms cover " + str(perc_covered_by_kept_tokens) + " of all terms")
 
 def save_tokens(encoded_tokens):
     time_stamp = math.floor(time.time() * 1000)
@@ -99,6 +105,8 @@ if __name__ == '__main__':
 
     pool = Pool(processes=nb_processes)
     chunksize = round(len(all_raw_data_paths) / nb_processes)
+    if chunksize == 0:
+        chunksize = len(all_raw_data_paths)
     counters = pool.map(count_tokens, chunks(all_raw_data_paths, chunksize))
     
     # merge counters that were gathered in parallel

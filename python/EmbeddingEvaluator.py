@@ -30,7 +30,6 @@ if __name__ == '__main__':
         vectors.append(vector)
     
     # perform q few similarity queries
-    queries = [ "i", "name", "jQuery", "counter", "element", "true", "msg", "length"] # for token-based
     queries = [ "ID:i", "ID:name", "ID:jQuery", "ID:counter", "ID:element", "LIT:true", "ID:msg", "ID:length"] # for AST-based
     kd_tree = KDTree(np.array(vectors))
     for query in queries:

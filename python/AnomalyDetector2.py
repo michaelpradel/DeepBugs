@@ -20,12 +20,13 @@ import LearningDataBinOperator
 import LearningDataSwappedBinOperands
 import LearningDataIncorrectBinaryOperand
 import LearningDataIncorrectAssignment
+import LearningDataMissingArg
 
 name_embedding_size = 200
 file_name_embedding_size = 50
 type_embedding_size = 5
 
-Anomaly = namedtuple("Anomaly", ["message", "score"])        
+Anomaly = namedtuple("Anomaly", ["message", "score"])
 
 def parse_data_paths(args):
     training_data_paths = []
@@ -66,7 +67,7 @@ def prepare_xy_pairs(data_paths, learning_data):
 if __name__ == '__main__':
     # arguments (for learning new model): what --learn <name to vector file> <type to vector file> <AST node type to vector file> --trainingData <list of call data files> --validationData <list of call data files>
     # arguments (for learning new model): what --load <model file> <name to vector file> <type to vector file> <AST node type to vector file> --trainingData <list of call data files> --validationData <list of call data files>
-    #   what is one of: SwappedArgs, BinOperator
+    #   what is one of: SwappedArgs, BinOperator, SwappedBinOperands, IncorrectBinaryOperand, IncorrectAssignment
     print("AnomalyDetector2 started with " + str(sys.argv))
     time_start = time.time()
     what = sys.argv[1]
@@ -105,6 +106,8 @@ if __name__ == '__main__':
         learning_data = LearningDataIncorrectBinaryOperand.LearningData()
     elif what == "IncorrectAssignment":
         learning_data = LearningDataIncorrectAssignment.LearningData()
+    elif what == "MissingArg":
+        learning_data = LearningDataMissingArg.LearningData()
     else:
         print("Incorrect argument for 'what'")
         sys.exit(1)
@@ -155,6 +158,7 @@ if __name__ == '__main__':
     threshold_to_correct = Counter()
     threshold_to_incorrect = Counter()
     threshold_to_found_seeded_bugs = Counter()
+    threshold_to_warnings_in_orig_code = Counter()
     ys_prediction = model.predict(xs_validation)
     poss_anomalies = []
     for idx in range(0, len(xs_validation), 2):
@@ -163,14 +167,14 @@ if __name__ == '__main__':
         anomaly_score = learning_data.anomaly_score(y_prediction_orig, y_prediction_changed) # higher means more likely to be anomaly in current code
         normal_score = learning_data.normal_score(y_prediction_orig, y_prediction_changed) # higher means more likely to be correct in current code
         is_anomaly = False
-        for threshold_raw in range(1, 10, 1):
-            threshold = threshold_raw / 10.0
-            #         this part isn't optimal, except for swapped args: vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
-            suggests_change_of_orig = round(y_prediction_orig) == 1 and round(y_prediction_changed) == 0 and anomaly_score >= threshold
-            suggests_change_of_changed = round(y_prediction_changed) == 1 and round(y_prediction_orig) == 0 and normal_score >= threshold
+        for threshold_raw in range(1, 20, 1):
+            threshold = threshold_raw / 20.0
+            suggests_change_of_orig = anomaly_score >= threshold
+            suggests_change_of_changed = normal_score >= threshold
             # counts for positive example
             if suggests_change_of_orig:
                 threshold_to_incorrect[threshold] += 1
+                threshold_to_warnings_in_orig_code[threshold] += 1
             else:
                 threshold_to_correct[threshold] += 1
             # counts for negative example
@@ -187,7 +191,7 @@ if __name__ == '__main__':
         if is_anomaly:
             code_piece = code_pieces_validation[idx]
             message = "Score : " + str(anomaly_score) + " | " + code_piece.to_message()
-            print("Possible anomaly: "+message)
+#             print("Possible anomaly: "+message)
             # Log the possible anomaly for future manual inspection
             poss_anomalies.append(Anomaly(message, anomaly_score))
     
@@ -202,14 +206,15 @@ if __name__ == '__main__':
     print("Time for prediction (seconds): " + str(round(time_prediction_done - time_learning_done)))
     
     print()
-    for threshold_raw in range(1, 10, 1):
-        threshold = threshold_raw / 10.0
+    for threshold_raw in range(1, 20, 1):
+        threshold = threshold_raw / 20.0
         recall = (threshold_to_found_seeded_bugs[threshold] * 1.0) / (len(xs_validation) / 2)
+        precision = 1 - ((threshold_to_warnings_in_orig_code[threshold] * 1.0) / (len(xs_validation) / 2))
         if threshold_to_correct[threshold] + threshold_to_incorrect[threshold] > 0:
             accuracy = threshold_to_correct[threshold] * 1.0 / (threshold_to_correct[threshold] + threshold_to_incorrect[threshold])
         else:
             accuracy = 0.0
-        print("Threshold: " + str(threshold) + "   Accuracy: " + str(round(accuracy, 4)) + "   Recall: " + str(round(recall, 4)))
+        print("Threshold: " + str(threshold) + "   Accuracy: " + str(round(accuracy, 4)) + "   Recall: " + str(round(recall, 4))+ "   Precision: " + str(round(precision, 4))+"  #Warnings: "+str(threshold_to_warnings_in_orig_code[threshold]))
     
     
     

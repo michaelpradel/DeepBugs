@@ -1,14 +1,14 @@
 DeepBugs: Deep Learning to Find Bugs
 ====================================
 
-DeepBugs is a framework for learning bug detectors from an existing code corpus. See [this technical report](http://mp.binaervarianz.de/DeepBugs_TR_Nov2017.pdf) for a detailed description.
+DeepBugs is a framework for learning name-based bug detectors from an existing code corpus. See [this technical report](http://mp.binaervarianz.de/DeepBugs_TR_Nov2017.pdf) for a detailed description.
 
 Overview
 -------------
 * All commands are called from the main directory.
 * Python code (most of the implementation) and JavaScript code (for extracting data from .js files) are in the `/python` and `/javascript` directories.
 * All data to learn from, e.g., .js files are expected to be in the `/data` directory.
-* All data that is generated, e.g., intermediate representations, are written into the main directory. It is recommend to move them into separate directories.
+* All data that is generated, e.g., intermediate representations, are written into the main directory. It is recommended to move them into separate directories.
 * All generated data files have a timestamp as part of the file name. Below, all files are used with `*`. When running commands multiple times, make sure to use the most recent files.
 
 
@@ -38,7 +38,6 @@ Creating a bug detector consists of two main steps:
 Each bug detector addresses a particular bug pattern, e.g.:
 
   * The `SwappedArgs` bug detector looks for accidentally swapped arguments of a function call, e.g., calling `setPoint(y,x)` instead of `setPoint(x,y)`.
-  * The `IncorrectAssignment` bug detector looks for assignments that assign an incorrect value, e.g., by using one variable instead of another.
   * The `BinOperator` bug detector looks for incorrect operators in binary operations, e.g., `i <= len` instead of `i < len`.
   * The `IncorrectBinaryOperand` bug detector looks for incorrect operands in binary operations, e.g., `height - x` instead of `height - y`.
 
@@ -48,8 +47,8 @@ Each bug detector addresses a particular bug pattern, e.g.:
 
   * The `--parallel` argument sets the number of processes to run.
   * `programs_50_training.txt` contains files to include (one file per line). To extract data for validation, run the command with `data/js/programs_50_eval.txt`.
-  * The last argument is a directory that gets recursively scanned for .js files (ignoring all but those listed in the file provided as the second argument).
-  * The command produces `calls_*.json` files, which is data suitable for the `SwappedArgs` bug detector. For the other bug detectors, replace `calls` with `assignments` or `binOps` in the above command.
+  * The last argument is a directory that gets recursively scanned for .js files, considering only files listed in the file provided as the second argument.
+  * The command produces `calls_*.json` files, which is data suitable for the `SwappedArgs` bug detector. For the other bug two detectors, replace `calls` with `binOps` in the above command.
 
 #### Step 2: Train a classifier to identify bugs
 
@@ -66,24 +65,24 @@ Note that learning a bug detector from the very small corpus of 50 programs will
 Embeddings for Identifiers
 ----------------------------------
 
-The above bug detectors rely on a vector representation for identifier names and literals. To use our framework, the easiest is to use the shipped `token_to_vector.json` file. Alternatively, you can learn the embedding as follows:
+The above bug detectors rely on a vector representation for identifier names and literals. To use our framework, the easiest is to use the shipped `token_to_vector.json` file. Alternatively, you can learn the embeddings via Word2Vec as follows:
 
-1) Extract identifiers and tokens, along with their AST context:
+1) Extract identifiers and tokens:
 
-`node javascript/extractFromJS.js idsLitsWithASTFamily --parallel 4 data/js/programs_50_training.txt data/js/programs_50`
+`node javascript/extractFromJS.js tokens --parallel 4 data/js/programs_50_training.txt data/js/programs_50`
 
-  * The command produces `idsLitsWithASTFamily_*.json` files.
+  * The command produces `tokens_*.json` files.
   
 2) Encode identifiers and literals with context into arrays of numbers (for faster reading during learning):
   
-  `python3 python/TokenWithASTContextToNumbers.py idsLitsWithASTFamily_*.json`
+  `python3 python/TokensToTopTokens.py tokens_*.json`
   
   * The arguments are the just created files.
-  * The command produces `encoded_tokens_with_context_*.npy` files, and two files `main_token_to_number_*.npy` and `context_token_to_number_*.npy` that assigns a number to each identifier and literal.
+  * The command produces `encoded_tokens_*.json` files and a file `token_to_number_*.json` that assigns a number to each identifier and literal.
 
 3) Learn embeddings for identifiers and literals:
   
-  `python3 python/ASTEmbeddingLearner.py main_token_to_number_*.json encoded_tokens_with_context_*.npy`
+  `python3 python/EmbeddingsLearnerWord2Vec.py token_to_number_*.json encoded_tokens_*.json`
 
   * The arguments are the just created files.
   * The command produces a file `token_to_vector_*.json`.

@@ -5,6 +5,7 @@
 /data/js/programs_5
 /data/js/programs_5000
 /data/js/programs_all
+/data/tokens
 *.swp
 *~
 __pycache__
@@ -24,3 +25,4 @@ fileIDs.json
 idsLits*.json
 main_token*.json
 poss_anomalies.txt
+HyperExp*
