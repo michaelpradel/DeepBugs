@@ -15,7 +15,6 @@ idsWith*.json
 litsWith*.json
 .idea/*
 encoded_tokens*.npy
-token_to*.json
 experiment_*
 rb-*.js
 *_model_*
