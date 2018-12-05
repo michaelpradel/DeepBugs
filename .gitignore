@@ -25,3 +25,5 @@ idsLits*.json
 main_token*.json
 poss_anomalies.txt
 HyperExp*
+/.vscode
+/.idea

@@ -25,6 +25,9 @@ class LearningData(object):
     def __init__(self):
         self.all_operators = None
         self.stats = {}
+        
+    def resetStats(self):
+        self.stats = {}
 
     def pre_scan(self, training_data_paths, validation_data_paths):
         all_operators_set = set()

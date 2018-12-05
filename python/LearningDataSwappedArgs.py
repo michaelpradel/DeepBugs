@@ -21,9 +21,13 @@ class CodePiece(object):
         return str(self.src) + " | " + str(self.callee) + " | " + str(self.arguments)
         
 class LearningData(object):
-    def __init__(self):
+    def is_known_type(self, t):
+        return t == "boolean" or t == "number" or t == "object" or t == "regex" or t == "string"
+    
+    def resetStats(self):
         self.stats = {"calls": 0, "calls_with_two_args": 0, "calls_with_known_names": 0,
                       "calls_with_known_base_object": 0, "calls_with_known_types": 0,
+                      "calls_with_both_known_types": 0,
                       "calls_with_known_parameters" :0}
     
     def pre_scan(self, training_data_paths, validation_data_paths):
@@ -77,8 +81,10 @@ class LearningData(object):
         argument_type_strings = call["argumentTypes"]
         argument0_type_vector = type_to_vector.get(argument_type_strings[0], [0]*type_embedding_size)
         argument1_type_vector = type_to_vector.get(argument_type_strings[1], [0]*type_embedding_size)
-        if (argument_type_strings[0] in type_to_vector or argument_type_strings[1] in type_to_vector):
+        if (self.is_known_type(argument_type_strings[0]) or self.is_known_type(argument_type_strings[1])):
             self.stats["calls_with_known_types"] += 1
+        if (self.is_known_type(argument_type_strings[0]) and self.is_known_type(argument_type_strings[1])):
+            self.stats["calls_with_both_known_types"] += 1
         
         parameter_strings = call["parameters"]
         parameter0_vector = name_to_vector.get(parameter_strings[0], [0]*name_embedding_size)

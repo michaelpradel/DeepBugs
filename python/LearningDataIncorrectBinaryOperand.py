@@ -28,6 +28,9 @@ class LearningData(object):
         self.file_to_operands = dict() # string to set of Operands
         self.stats = {}
 
+    def resetStats(self):
+        self.stats = {}
+
     def pre_scan(self, training_data_paths, validation_data_paths):
         all_operators_set = set()
         for bin_op in Util.DataReader(training_data_paths):
