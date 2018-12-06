@@ -1,7 +1,7 @@
 DeepBugs: Deep Learning to Find Bugs
 ====================================
 
-DeepBugs is a framework for learning name-based bug detectors from an existing code corpus. See our [OOPSLA 2018 paper](http://software-lab.org/publications/oopsla2018_DeepBugs.pdf) for a detailed description.
+DeepBugs is a framework for learning name-based bug detectors from an existing code corpus. See [this technical report](http://mp.binaervarianz.de/DeepBugs_TR_Nov2017.pdf) for a detailed description.
 
 Overview
 -------------
@@ -52,7 +52,7 @@ Each bug detector addresses a particular bug pattern, e.g.:
 
 #### Step 2: Train a classifier to identify bugs
 
-`python3 python/AnomalyDetector2.py SwappedArgs --learn token_to_vector.json type_to_vector.json node_type_to_vector.json --trainingData calls_xx*.json --validationData calls_yy*.json`
+`python3 python/BugDetection.py SwappedArgs --learn token_to_vector.json type_to_vector.json node_type_to_vector.json --trainingData calls_xx*.json --validationData calls_yy*.json`
 
   * The first argument selects the bug pattern.
   * The next three arguments are vector representations for tokens (here: identifiers and literals), for types, and for AST node types. These files are provided in the repository.

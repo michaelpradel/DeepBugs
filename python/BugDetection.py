@@ -63,6 +63,8 @@ def prepare_xy_pairs(data_paths, learning_data):
     print("Stats: " + str(learning_data.stats))
     print("Number of x,y pairs: " + str(len(xs)))
     print("Length of x vectors: " + str(x_length))
+    xs = np.array(xs)
+    ys = np.array(ys)
     return [xs, ys, code_pieces]
 
 def sample_xy_pairs(xs, ys, number_buggy):
@@ -84,7 +86,7 @@ if __name__ == '__main__':
     # arguments (for learning new model): what --learn <name to vector file> <type to vector file> <AST node type to vector file> --trainingData <list of call data files> --validationData <list of call data files>
     # arguments (for learning new model): what --load <model file> <name to vector file> <type to vector file> <AST node type to vector file> --trainingData <list of call data files> --validationData <list of call data files>
     #   what is one of: SwappedArgs, BinOperator, SwappedBinOperands, IncorrectBinaryOperand, IncorrectAssignment
-    print("AnomalyDetector2 started with " + str(sys.argv))
+    print("BugDetection started with " + str(sys.argv))
     time_start = time.time()
     what = sys.argv[1]
     option = sys.argv[2]
@@ -157,7 +159,7 @@ if __name__ == '__main__':
         history = model.fit(xs_training, ys_training, batch_size=100, epochs=10, verbose=1)
         
         time_stamp = math.floor(time.time() * 1000)
-        model.save("anomaly_detection_model_"+str(time_stamp))
+        model.save("bug_detection_model_"+str(time_stamp))
     
     time_learning_done = time.time()
     print("Time for learning (seconds): " + str(round(time_learning_done - time_start)))
