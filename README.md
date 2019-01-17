@@ -1,7 +1,7 @@
 DeepBugs: Deep Learning to Find Bugs
 ====================================
 
-DeepBugs is a framework for learning name-based bug detectors from an existing code corpus. See [this technical report](http://mp.binaervarianz.de/DeepBugs_TR_Nov2017.pdf) for a detailed description.
+DeepBugs is a framework for learning name-based bug detectors from an existing code corpus. See [our OOPSLA'18 paper](http://software-lab.org/publications/oopsla2018_DeepBugs.pdf) for a detailed description.
 
 Overview
 -------------
