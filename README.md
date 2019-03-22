@@ -82,7 +82,7 @@ The above bug detectors rely on a vector representation for identifier names and
 
 3) Learn embeddings for identifiers and literals:
   
-  `python3 python/EmbeddingsLearnerWord2Vec.py token_to_number_*.json encoded_tokens_*.json`
+  `python3 python/EmbeddingLearnerWord2Vec.py token_to_number_*.json encoded_tokens_*.json`
 
   * The arguments are the just created files.
   * The command produces a file `token_to_vector_*.json`.
