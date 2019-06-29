@@ -16,9 +16,6 @@ The <what> argument must be one of:
   callsMissingArg
   assignments
   binOps
-  idsLitsWithTokens
-  idsLitsWithIds
-  idsLitsWithASTFamily
 `;
 
     const process = require("process");
@@ -104,7 +101,7 @@ The <what> argument must be one of:
     // read command line arguments
     const args = process.argv.slice(2);
     const what = args[0];
-    if (["tokens", "calls", "assignments", "callsMissingArg", "binOps", "idsLitsWithTokens", "idsLitsWithIds", "idsLitsWithASTFamily"].indexOf(what) === -1) {
+    if (["tokens", "calls", "assignments", "callsMissingArg", "binOps"].indexOf(what) === -1) {
         console.log(usage);
         process.exit(1);
     }
@@ -135,9 +132,6 @@ The <what> argument must be one of:
         else if (what === "assignments") extractor = require("./extractorOfAssignments2");
         else if (what === "tokens") extractor = require("./extractorOfTokens");
         else if (what === "binOps") extractor = require("./extractorOfBinOps");
-        else if (what === "idsLitsWithTokens") extractor = require("./extractorOfIdsLitsWithTokens");
-        else if (what === "idsLitsWithIds") extractor = require("./extractorOfIdsLitsWithIds");
-        else if (what === "idsLitsWithASTFamily") extractor = require("./extractorOfIdsLitsWithASTFamily");
         else if (what === "callsMissingArg") extractor = require("./extractorOfCallsMissingArg");
 
         const allData = [];
