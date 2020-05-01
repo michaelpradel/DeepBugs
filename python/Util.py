@@ -42,7 +42,7 @@ class DataReader(object):
     def __iter__(self):
         for data_path in self.data_paths:
             print("Reading file " + data_path)
-            with open(data_path) as file:
+            with open(data_path, encoding="utf8") as file:
                 calls = json.load(file)
                 for call in calls:
                     yield call
