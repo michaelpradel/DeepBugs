@@ -96,13 +96,15 @@ if __name__ == '__main__':
         print("Incorrect argument for 'what'")
         sys.exit(1)
     
+    learn_on = True
+
     print("Statistics on training data:")
     learning_data.pre_scan(training_data_paths, validation_data_paths)
     
     # prepare x,y pairs for learning
     print("Preparing xy pairs for training data:")
     learning_data.resetStats()
-    xs_training, ys_training, _ = BugsPrepare.prepare_xy_pairs(name_to_vector, type_to_vector, node_type_to_vector, training_data_paths, learning_data)
+    xs_training, ys_training, _ = BugsPrepare.prepare_xy_pairs(learn_on, name_to_vector, type_to_vector, node_type_to_vector, training_data_paths, learning_data)
     x_length = len(xs_training[0])
     print("Training examples   : " + str(len(xs_training)))
     print(learning_data.stats)
@@ -128,7 +130,7 @@ if __name__ == '__main__':
     # prepare x,y pairs for validation
     print("Preparing xy pairs for validation data:")
     learning_data.resetStats()
-    xs_validation, ys_validation, code_pieces_validation = BugsPrepare.prepare_xy_pairs(name_to_vector, type_to_vector, node_type_to_vector, validation_data_paths, learning_data)
+    xs_validation, ys_validation, code_pieces_validation = BugsPrepare.prepare_xy_pairs(learn_on, name_to_vector, type_to_vector, node_type_to_vector, validation_data_paths, learning_data)
     print("Validation examples : " + str(len(xs_validation)))
     print(learning_data.stats)
     

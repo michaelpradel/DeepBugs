@@ -2,6 +2,10 @@
 Created on Nov 9, 2017
 
 @author: Michael Pradel
+
+Last changed in Mar, 2020
+
+@by: Sabine Zach
 '''
 
 import Util
@@ -20,7 +24,7 @@ class CodePiece(object):
     def to_message(self):
         return str(self.src) + " | " + str(self.callee) + " | " + str(self.arguments)
         
-class LearningData(object):
+class Data(object):
     def is_known_type(self, t):
         return t == "boolean" or t == "number" or t == "object" or t == "regex" or t == "string"
     
@@ -30,11 +34,15 @@ class LearningData(object):
                       "calls_with_both_known_types": 0,
                       "calls_with_known_parameters" :0}
     
-    def pre_scan(self, training_data_paths, validation_data_paths):
-        print("Stats on training data")
-        self.gather_stats(training_data_paths)
-        print("Stats on validation data")
-        self.gather_stats(validation_data_paths)
+    def pre_scan(self, first_data_paths, second_data_paths = []):
+        print("Stats on first data")
+        self.gather_stats(first_data_paths)
+
+        if second_data_paths == []:
+            return
+
+        print("Stats on second data")
+        self.gather_stats(second_data_paths)
 
     def gather_stats(self, data_paths):
         callee_to_freq = Counter()
@@ -52,7 +60,7 @@ class LearningData(object):
         print("  " + "\n  ".join(str(x) for x in argument_to_freq.most_common(10)))
         Util.analyze_histograms(argument_to_freq)
         
-    def code_to_xy_pairs(self, call, xs, ys, name_to_vector, type_to_vector, node_type_to_vector, calls=None):
+    def code_to_xy_pairs(self, learn_on, call, xs, ys, name_to_vector, type_to_vector, node_type_to_vector, calls=None):
         arguments = call["arguments"]
         self.stats["calls"] += 1
         if len(arguments) != 2:
@@ -101,18 +109,22 @@ class LearningData(object):
         ys.append(y_keep)
         if calls != None:
             calls.append(CodePiece(callee_string, argument_strings, call["src"]))
-        
-        x_swap = callee_vector + argument1_vector + argument0_vector
-        x_swap += base_vector + argument1_type_vector + argument0_type_vector
-        x_swap += parameter0_vector + parameter1_vector #+ file_name_vector
-        y_swap = [1]
-        xs.append(x_swap)
-        ys.append(y_swap)
-        if calls != None:
-            calls.append(CodePiece(callee_string, argument_strings, call["src"]))
-            
+
+
+        # in learning mode: swap arguments
+        if learn_on:
+            x_swap = callee_vector + argument1_vector + argument0_vector
+            x_swap += base_vector + argument1_type_vector + argument0_type_vector
+            x_swap += parameter0_vector + parameter1_vector #+ file_name_vector
+            y_swap = [1]
+            xs.append(x_swap)
+            ys.append(y_swap)
+            if calls != None:
+                calls.append(CodePiece(callee_string, argument_strings, call["src"]))
+
     def anomaly_score(self, y_prediction_orig, y_prediction_changed):
         return y_prediction_orig - y_prediction_changed # higher means more likely to be anomaly in current code
-    
+
     def normal_score(self, y_prediction_orig, y_prediction_changed):
         return y_prediction_changed - y_prediction_orig # higher means more likely to be correct in current code
+

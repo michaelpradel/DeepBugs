@@ -29,13 +29,13 @@ def sample_xy_pairs(xs, ys, number_buggy):
             sampled_ys.append(y)
     return sampled_xs, sampled_ys
 
-def prepare_xy_pairs(name_to_vector, type_to_vector, node_type_to_vector, data_paths, learning_data):
+def prepare_xy_pairs(learn_on, name_to_vector, type_to_vector, node_type_to_vector, data_paths, learning_data):
     xs = []
     ys = []
     code_pieces = [] # keep calls in addition to encoding as x,y pairs (to report detected anomalies)
 
     for code_piece in Util.DataReader(data_paths):
-        learning_data.code_to_xy_pairs(code_piece, xs, ys, name_to_vector, type_to_vector, node_type_to_vector, code_pieces)
+        learning_data.code_to_xy_pairs(learn_on, code_piece, xs, ys, name_to_vector, type_to_vector, node_type_to_vector, code_pieces)
     x_length = len(xs[0])
 
     print("Stats: " + str(learning_data.stats))

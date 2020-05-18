@@ -52,7 +52,7 @@ Each bug detector addresses a particular bug pattern, e.g.:
 
 #### Step 2: Train a classifier to identify bugs
 
-`python3 python/BugDetection.py SwappedArgs --learn token_to_vector.json type_to_vector.json node_type_to_vector.json --trainingData calls_xx*.json --validationData calls_yy*.json`
+`python3 python/BugDetection.py SwappedArgs token_to_vector.json type_to_vector.json node_type_to_vector.json --trainingData calls_xx*.json --validationData calls_yy*.json`
 
   * The first argument selects the bug pattern.
   * The next three arguments are vector representations for tokens (here: identifiers and literals), for types, and for AST node types. These files are provided in the repository.
