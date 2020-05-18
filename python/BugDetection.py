@@ -81,17 +81,13 @@ if __name__ == '__main__':
         node_type_to_vector = json.load(f)
     
     if what == "SwappedArgs":
-        learning_data = LearningDataSwappedArgs.LearningData()
+        learning_data = LearningDataSwappedArgs.Data()
     elif what == "BinOperator":
-        learning_data = LearningDataBinOperator.LearningData()
+        learning_data = LearningDataBinOperator.Data()
     elif what == "SwappedBinOperands":
-        learning_data = LearningDataSwappedBinOperands.LearningData()
+        learning_data = LearningDataSwappedBinOperands.Data()
     elif what == "IncorrectBinaryOperand":
-        learning_data = LearningDataIncorrectBinaryOperand.LearningData()
-    elif what == "IncorrectAssignment":
-        learning_data = LearningDataIncorrectAssignment.LearningData()
-    elif what == "MissingArg":
-        learning_data = LearningDataMissingArg.LearningData()
+        learning_data = LearningDataIncorrectBinaryOperand.Data()
     else:
         print("Incorrect argument for 'what'")
         sys.exit(1)
