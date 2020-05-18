@@ -16,6 +16,8 @@ import random
 import time
 import numpy as np
 import Util
+
+import BugsPrepare
 import LearningDataSwappedArgs
 import LearningDataBinOperator
 import LearningDataSwappedBinOperands
@@ -51,36 +53,9 @@ def parse_data_paths(args):
                 sys.exit(0)
     return [training_data_paths, eval_data_paths]
 
-def prepare_xy_pairs(data_paths, learning_data):
-    xs = []
-    ys = []
-    code_pieces = [] # keep calls in addition to encoding as x,y pairs (to report detected anomalies)
-    
-    for code_piece in Util.DataReader(data_paths):
-        learning_data.code_to_xy_pairs(code_piece, xs, ys, name_to_vector, type_to_vector, node_type_to_vector, code_pieces)
-    x_length = len(xs[0])
-    
-    print("Stats: " + str(learning_data.stats))
-    print("Number of x,y pairs: " + str(len(xs)))
-    print("Length of x vectors: " + str(x_length))
-    xs = np.array(xs)
     ys = np.array(ys)
     return [xs, ys, code_pieces]
 
-def sample_xy_pairs(xs, ys, number_buggy):
-    sampled_xs = []
-    sampled_ys = []
-    buggy_indices = []
-    for i, y in enumerate(ys):
-        if y == [1]:
-            buggy_indices.append(i)
-    sampled_buggy_indices = set(np.random.choice(buggy_indices, size=number_buggy, replace=False))
-    for i, x in enumerate(xs):
-        y = ys[i]
-        if y == [0] or i in sampled_buggy_indices:
-            sampled_xs.append(x)
-            sampled_ys.append(y)
-    return sampled_xs, sampled_ys
 
 if __name__ == '__main__':
     # arguments (for learning new model): what --learn <name to vector file> <type to vector file> <AST node type to vector file> --trainingData <list of call data files> --validationData <list of call data files>
@@ -136,7 +111,7 @@ if __name__ == '__main__':
     # prepare x,y pairs for learning and validation
     print("Preparing xy pairs for training data:")
     learning_data.resetStats()
-    xs_training, ys_training, _ = prepare_xy_pairs(training_data_paths, learning_data)
+    xs_training, ys_training, _ = BugsPrepare.prepare_xy_pairs(name_to_vector, type_to_vector, node_type_to_vector, training_data_paths, learning_data)
     x_length = len(xs_training[0])
     print("Training examples   : " + str(len(xs_training)))
     print(learning_data.stats)
@@ -166,7 +141,7 @@ if __name__ == '__main__':
     
     print("Preparing xy pairs for validation data:")
     learning_data.resetStats()
-    xs_validation, ys_validation, code_pieces_validation = prepare_xy_pairs(validation_data_paths, learning_data)
+    xs_validation, ys_validation, code_pieces_validation = BugsPrepare.prepare_xy_pairs(name_to_vector, type_to_vector, node_type_to_vector, validation_data_paths, learning_data)
     print("Validation examples : " + str(len(xs_validation)))
     print(learning_data.stats)
     
