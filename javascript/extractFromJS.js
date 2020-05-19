@@ -7,7 +7,7 @@ Two usage modes:
   1) extractFromJS.js <what> --parallel N <fileList.txt> <dir>
      Analyze all files in <dir> that are listed in <fileList.txt>, using N parallel instances.
      If <fileList.txt> is "all", analyze all files in <dir>.
-  2) extractFromJS.js <what> --files <list of files> [--outfile|-o <file>]:
+  2) extractFromJS.js <what> --files <list of files> [--outfile <file>]:
      Analyze the list of files.
 
 The <what> argument must be one of:
