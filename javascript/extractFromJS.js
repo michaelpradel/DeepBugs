@@ -7,7 +7,7 @@ Two usage modes:
   1) extractFromJS.js <what> --parallel N <fileList.txt> <dir>
      Analyze all files in <dir> that are listed in <fileList.txt>, using N parallel instances.
      If <fileList.txt> is "all", analyze all files in <dir>.
-  2) extractFromJS.js <what> --files <list of files>:
+  2) extractFromJS.js <what> --files <list of files> [--outfile <file>]:
      Analyze the list of files.
 
 The <what> argument must be one of:
@@ -98,8 +98,11 @@ The <what> argument must be one of:
         }
     }
 
+    // outfile
+    let fileName = "";
+
     // read command line arguments
-    const args = process.argv.slice(2);
+    let args = process.argv.slice(2);
     const what = args[0];
     if (["tokens", "calls", "assignments", "callsMissingArg", "binOps"].indexOf(what) === -1) {
         console.log(usage);
@@ -135,9 +138,19 @@ The <what> argument must be one of:
         else if (what === "callsMissingArg") extractor = require("./extractorOfCallsMissingArg");
 
         const allData = [];
-        const jsFiles = args.slice(2);
+        args = args.slice(2);
+        const jsFiles = args;
         let fileToID = getOrCreateFileToID(jsFiles);
+
         for (let i = 0; i < jsFiles.length; i++) {
+            // look for '--outfile' at second last argument
+            if (args[i] === "--outfile") {
+                if (i === jsFiles.length -2) {
+                    fileName = args[i+1];
+                    break;
+                }
+            }
+
             const jsFile = jsFiles[i];
             const fileID = fileToID[jsFile]; // assumption: at most 6 digits long
 
@@ -147,7 +160,9 @@ The <what> argument must be one of:
                 extractor.visitFile(jsFile, allData);
             }
         }
-        const fileName = what + "_" + Date.now() + ".json";
+        if (fileName ===  "") {
+            fileName = what + "_" + Date.now() + ".json";
+        }
         console.log("Writing " + allData.length + " items to file " + fileName);
         fs.writeFileSync(fileName, JSON.stringify(allData, null, 2));
     } else {
