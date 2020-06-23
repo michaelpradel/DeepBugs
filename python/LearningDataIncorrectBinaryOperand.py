@@ -2,6 +2,10 @@
 Created on Nov 13, 2017
 
 @author: Michael Pradel
+
+Last changed on Apr 24, 2020
+
+@by: Sabine Zach
 '''
 
 import Util
@@ -31,28 +35,32 @@ class LearningData(object):
     def resetStats(self):
         self.stats = {}
 
-    def pre_scan(self, training_data_paths, validation_data_paths):
+    def pre_scan(self, first_data_paths, second_data_paths = []):
         all_operators_set = set()
-        for bin_op in Util.DataReader(training_data_paths):
+        for bin_op in Util.DataReader(first_data_paths):
             file = bin_op["src"].split(" : ")[0]
             operands = self.file_to_operands.setdefault(file, set())
             left_operand = Operand(bin_op["left"], bin_op["leftType"])
             right_operand = Operand(bin_op["right"], bin_op["rightType"])
             operands.add(left_operand)
             operands.add(right_operand)
-            
+
             all_operators_set.add(bin_op["op"])
-        for bin_op in Util.DataReader(validation_data_paths):
+        if second_data_paths == []:
+           self.all_operators = list(all_operators_set)
+           return
+
+        for bin_op in Util.DataReader(second_data_paths):
             file = bin_op["src"].split(" : ")[0]
             operands = self.file_to_operands.setdefault(file, set())
             left_operand = Operand(bin_op["left"], bin_op["leftType"])
             right_operand = Operand(bin_op["right"], bin_op["rightType"])
             operands.add(left_operand)
             operands.add(right_operand)
-            
+
             all_operators_set.add(bin_op["op"])
         self.all_operators = list(all_operators_set)
-    
+
     def code_to_xy_pairs(self, bin_op, xs, ys, name_to_vector, type_to_vector, node_type_to_vector, code_pieces):
         left = bin_op["left"]
         right = bin_op["right"]
