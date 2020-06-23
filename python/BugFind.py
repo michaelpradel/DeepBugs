@@ -24,12 +24,14 @@ import LearningDataSwappedArgs
 import LearningDataBinOperator
 import LearningDataSwappedBinOperands
 import LearningDataIncorrectBinaryOperand
-import LearningDataIncorrectAssignment
-import LearningDataMissingArg
+##not yet implemented
+##import LearningDataIncorrectAssignment
+##import LearningDataMissingArg
 
-name_embedding_size = 200
-file_name_embedding_size = 50
-type_embedding_size = 5
+##not used
+##name_embedding_size = 200
+##file_name_embedding_size = 50
+##type_embedding_size = 5
 
 Anomaly = namedtuple("Anomaly", ["message", "score"])
 
@@ -83,6 +85,12 @@ def sample_xy_pairs(xs, ys, number_buggy):
 if __name__ == '__main__':
     # arguments (for learning new model): what --load <model file> <name to vector file> <type to vector file> <AST node type to vector file> --newData <list of data files in json format>
     #   what is one of: SwappedArgs, BinOperator, SwappedBinOperands, IncorrectBinaryOperand, IncorrectAssignment
+    #
+    # not yet implemented bug patterns are the following:
+    #
+    # "IncorrectAssignment"
+    # "MissingArg"
+    #
 
     print("BugFind started with " + str(sys.argv))
 
@@ -116,10 +124,11 @@ if __name__ == '__main__':
         learning_data = LearningDataSwappedBinOperands.LearningData()
     elif what == "IncorrectBinaryOperand":
         learning_data = LearningDataIncorrectBinaryOperand.LearningData()
-    elif what == "IncorrectAssignment":
-        learning_data = LearningDataIncorrectAssignment.LearningData()
-    elif what == "MissingArg":
-        learning_data = LearningDataMissingArg.LearningData()
+    ##not yet used
+    ##elif what == "IncorrectAssignment":
+    ##    learning_data = LearningDataIncorrectAssignment.LearningData()
+    ##elif what == "MissingArg":
+    ##    learning_data = LearningDataMissingArg.LearningData()
     else:
         print("Incorrect argument for 'what'")
         sys.exit(1)
@@ -130,7 +139,7 @@ if __name__ == '__main__':
     
     # prepare x,y pairs
     print("Preparing xy pairs for new data:")
-    xs_newdata, ys_dummy, _ = prepare_xy_pairs(new_data_paths, learning_data)
+    xs_newdata, ys_dummy, code_pieces_prediction = prepare_xy_pairs(new_data_paths, learning_data)
     x_length = len(xs_newdata[0])
 
     print("New Data examples   : " + str(len(xs_newdata)))
@@ -145,6 +154,22 @@ if __name__ == '__main__':
 
     time_done = time.time()
     print("Time for prediction (seconds): " + str(round(time_done - time_start)))
-    
-    
-    
+
+    ##------------------------------------------------
+    print("Predictions:\n")
+    print("------------\n")
+
+    # produce prediction message
+    for idx in range(0, len(xs_validation)):
+        p = ys_prediction[idx][0]    # probab, expect 0, when code is correct
+        c = code_pieces_prediction[idx]
+
+        message = "Prediction : " + str(p) + " | " + c.to_message() + "\n\n"
+        print(message + "\n")
+
+    ##------------------------------------------------
+
+    print("------------\n")
+    print("Predictions finished")
+
+    #-------------------------------------Find------------------------------------------
