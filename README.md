@@ -52,12 +52,18 @@ Each bug detector addresses a particular bug pattern, e.g.:
 
 #### Step 2: Train a classifier to identify bugs
 
-`python3 python/BugDetection.py SwappedArgs --learn token_to_vector.json type_to_vector.json node_type_to_vector.json --trainingData calls_xx*.json --validationData calls_yy*.json`
+A) Train and validate the classifier
+`python3 python/BugLearnAndValidate.py SwappedArgs --learn token_to_vector.json type_to_vector.json node_type_to_vector.json --trainingData calls_xx*.json --validationData calls_yy*.json`
 
   * The first argument selects the bug pattern.
   * The next three arguments are vector representations for tokens (here: identifiers and literals), for types, and for AST node types. These files are provided in the repository.
   * The remaining arguments are two lists of .json files. They contain the training and validation data extracted in Step 1.
   * After learning the bug detector, the command measures accurracy and recall w.r.t. seeded bugs and writes a list of potential bugs in the unmodified validation code (see `poss_anomalies.txt`).
+
+B) Train just to get a classifier
+`python3 python/BugLearn.py SwappedArgs --learn token_to_vector.json type_to_vector.json node_type_to_vector.json --trainingData calls_xx*.json --validationData calls_yy*.json`
+
+  * The arguments are all the same as in case A)
 
 Note that learning a bug detector from the very small corpus of 50 programs will yield a classifier with low accuracy that is unlikely to be useful. To leverage the full power of DeepBugs, you'll need a larger code corpus, e.g., the [JS150 corpus](http://www.srl.inf.ethz.ch/js150.php) mentioned above.
 
