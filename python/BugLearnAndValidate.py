@@ -2,6 +2,10 @@
 Created on Jun 23, 2017
 
 @author: Michael Pradel
+
+Last Changed on Apr 28, 2020
+
+@by: Sabine Zach
 '''
 
 import sys
@@ -84,7 +88,6 @@ def sample_xy_pairs(xs, ys, number_buggy):
 
 if __name__ == '__main__':
     # arguments (for learning new model): what --learn <name to vector file> <type to vector file> <AST node type to vector file> --trainingData <list of call data files> --validationData <list of call data files>
-    # arguments (for learning new model): what --load <model file> <name to vector file> <type to vector file> <AST node type to vector file> --trainingData <list of call data files> --validationData <list of call data files>
     #   what is one of: SwappedArgs, BinOperator, SwappedBinOperands, IncorrectBinaryOperand, IncorrectAssignment
     print("BugDetection started with " + str(sys.argv))
     time_start = time.time()
@@ -95,14 +98,6 @@ if __name__ == '__main__':
         type_to_vector_file = join(getcwd(), sys.argv[4])
         node_type_to_vector_file = join(getcwd(), sys.argv[5])
         training_data_paths, validation_data_paths = parse_data_paths(sys.argv[6:])
-    elif option == "--load":
-        print("--load option is buggy and currently disabled")
-        sys.exit(1)
-        model_file = sys.argv[3]
-        name_to_vector_file = join(getcwd(), sys.argv[4])
-        type_to_vector_file = join(getcwd(), sys.argv[5])
-        node_type_to_vector_file = join(getcwd(), sys.argv[6])
-        training_data_paths, validation_data_paths = parse_data_paths(sys.argv[7:])
     else:
         print("Incorrect arguments")
         sys.exit(1)
@@ -141,42 +136,40 @@ if __name__ == '__main__':
     print("Training examples   : " + str(len(xs_training)))
     print(learning_data.stats)
     
-    # manual validation of stored model (for debugging)
-    if option == "--load":
-        model = load_model(model_file)
-        print("Loaded model.")
-    elif option == "--learn": 
-        # simple feedforward network
-        model = Sequential()
-        model.add(Dropout(0.2, input_shape=(x_length,)))
-        model.add(Dense(200, input_dim=x_length, activation="relu", kernel_initializer='normal'))
-        model.add(Dropout(0.2))
-        #model.add(Dense(200, activation="relu"))
-        model.add(Dense(1, activation="sigmoid", kernel_initializer='normal'))
+    # create a model (simple feedforward network)
+    model = Sequential()
+    model.add(Dropout(0.2, input_shape=(x_length,)))
+    model.add(Dense(200, input_dim=x_length, activation="relu", kernel_initializer='normal'))
+    model.add(Dropout(0.2))
+    #model.add(Dense(200, activation="relu"))
+    model.add(Dense(1, activation="sigmoid", kernel_initializer='normal'))
      
-        # train
-        model.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
-        history = model.fit(xs_training, ys_training, batch_size=100, epochs=10, verbose=1)
+    # train model
+    model.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=['accuracy'])
+    history = model.fit(xs_training, ys_training, batch_size=100, epochs=10, verbose=1)
         
-        time_stamp = math.floor(time.time() * 1000)
-        model.save("bug_detection_model_"+str(time_stamp))
+    time_stamp = math.floor(time.time() * 1000)
+    model.save("bug_detection_model_"+str(time_stamp))
     
     time_learning_done = time.time()
     print("Time for learning (seconds): " + str(round(time_learning_done - time_start)))
     
+    # prepare validation data
     print("Preparing xy pairs for validation data:")
     learning_data.resetStats()
     xs_validation, ys_validation, code_pieces_validation = prepare_xy_pairs(validation_data_paths, learning_data)
     print("Validation examples : " + str(len(xs_validation)))
     print(learning_data.stats)
     
-    # validate
+    # validate the model
     validation_loss = model.evaluate(xs_validation, ys_validation)
     print()
     print("Validation loss & accuracy: " + str(validation_loss))
     
-    # compute precision and recall with different thresholds for reporting anomalies
-    # assumption: correct and swapped arguments are alternating in list of x-y pairs
+    # compute precision and recall with different thresholds
+    #  for reporting anomalies
+    # assumption: correct and incorrect arguments are alternating
+    #  in list of x-y pairs
     threshold_to_correct = Counter()
     threshold_to_incorrect = Counter()
     threshold_to_found_seeded_bugs = Counter()
@@ -237,6 +230,3 @@ if __name__ == '__main__':
         else:
             accuracy = 0.0
         print("Threshold: " + str(threshold) + "   Accuracy: " + str(round(accuracy, 4)) + "   Recall: " + str(round(recall, 4))+ "   Precision: " + str(round(precision, 4))+"  #Warnings: "+str(threshold_to_warnings_in_orig_code[threshold]))
-    
-    
-    
