@@ -2,6 +2,10 @@
 Created on Nov 9, 2017
 
 @author: Michael Pradel
+
+Last changed in Mar, 2020
+
+@by: Sabine Zach
 '''
 
 import Util
@@ -30,11 +34,13 @@ class LearningData(object):
                       "calls_with_both_known_types": 0,
                       "calls_with_known_parameters" :0}
     
-    def pre_scan(self, training_data_paths, validation_data_paths):
-        print("Stats on training data")
-        self.gather_stats(training_data_paths)
-        print("Stats on validation data")
-        self.gather_stats(validation_data_paths)
+    def pre_scan(self, first_data_paths, second_data_paths = []):
+        print("Stats on first data")
+        self.gather_stats(first_data_paths)
+
+        if second_data_paths != []:
+            print("Stats on second data")
+            self.gather_stats(second_data_paths)
 
     def gather_stats(self, data_paths):
         callee_to_freq = Counter()

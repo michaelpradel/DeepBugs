@@ -68,6 +68,38 @@ B) Train just to get a classifier
 Note that learning a bug detector from the very small corpus of 50 programs will yield a classifier with low accuracy that is unlikely to be useful. To leverage the full power of DeepBugs, you'll need a larger code corpus, e.g., the [JS150 corpus](http://www.srl.inf.ethz.ch/js150.php) mentioned above.
 
 
+Finding Bugs
+-------------------------------
+
+Finding bugs in one or more source files consists of these two steps:
+1) Extract code pieces
+2) Use a trained classifier to identify bugs
+
+Each bug detector addresses a particular bug pattern, e.g.:
+
+  * The `SwappedArgs` bug detector looks for accidentally swapped arguments of a function call, e.g., calling `setPoint(y,x)` instead of `setPoint(x,y)`.
+  * The `BinOperator` bug detector looks for incorrect operators in binary operations, e.g., `i <= len` instead of `i < len`.
+  * The `IncorrectBinaryOperand` bug detector looks for incorrect operands in binary operations, e.g., `height - x` instead of `height - y`.
+
+#### Step 1: Extract code pieces
+
+`node javascript/extractFromJS.js calls -files <list of files>`
+
+  * <list of files> contains one or more files to be examined. Code pieces can be extracted from any javascript file (.js) given with path specification relative to the main directory.
+  * The command produces `calls_*.json` files, which is data suitable for the `SwappedArgs` bug detector. For the other bug two detectors, replace `calls` with `binOps` in the above command.
+
+#### Step 2: Use a trained classifier to identify bugs
+
+`python3 python/BugFind.py SwappedArgs --load model token_to_vector.json type_to_vector.json node_type_to_vector.json --newData calls_xx*.json`
+
+  * The first argument selects the bug pattern.
+  * --load: will be deprecated within short time
+  * The next argument is the name of the trained classifier. Its path must be given relative to the main direcetory.
+  * The next three arguments are vector representations for tokens (here: identifiers and literals), for types, and for AST node types. These files are provided in the repository.
+  * The remaining argument is a list of .json files. They contain the data extracted in Step 1.
+  * The command examines every code piece and writes a list of potential bugs with its probability of being incorrect
+
+
 Embeddings for Identifiers
 ----------------------------------
 

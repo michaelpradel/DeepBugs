@@ -2,11 +2,21 @@
 Created on Nov 9, 2017
 
 @author: Michael Pradel
+
+Last changed in Mar, 2020
+
+@by: Sabine Zach
 '''
 
 import Util
 from collections import Counter
 import random
+
+operator_embedding_size = 30   #the number should correspond to the maximum
+                               #length of the operator vector
+                               #if not set, it could accidently happen, that
+                               #the operator vector is to short
+                               #and as a result is not compatible with the model!
 
 type_embedding_size = 5
 node_type_embedding_size = 8 # if changing here, then also change in LearningDataBinOperator
@@ -29,14 +39,20 @@ class LearningData(object):
     def resetStats(self):
         self.stats = {}
 
-    def pre_scan(self, training_data_paths, validation_data_paths):
+    def pre_scan(self, first_data_paths, second_data_paths = []):
         all_operators_set = set()
-        for bin_op in Util.DataReader(training_data_paths):
+
+        for bin_op in Util.DataReader(first_data_paths):
+                all_operators_set.add(bin_op["op"])
+        if second_data_paths == []:
+           self.all_operators = list(all_operators_set)
+           return
+
+        for bin_op in Util.DataReader(second_data_paths):
             all_operators_set.add(bin_op["op"])
-        for bin_op in Util.DataReader(validation_data_paths):
-            all_operators_set.add(bin_op["op"])
+
         self.all_operators = list(all_operators_set)
-    
+
     def code_to_xy_pairs(self, bin_op, xs, ys, name_to_vector, type_to_vector, node_type_to_vector, code_pieces):
         left = bin_op["left"]
         right = bin_op["right"]
@@ -53,7 +69,7 @@ class LearningData(object):
     
         left_vector = name_to_vector[left]
         right_vector = name_to_vector[right]
-        operator_vector = [0] * len(self.all_operators)
+        operator_vector = [0] * operator_embedding_size
         operator_vector[self.all_operators.index(operator)] = 1
         left_type_vector = type_to_vector.get(left_type, [0]*type_embedding_size)
         right_type_vector = type_to_vector.get(right_type, [0]*type_embedding_size)
@@ -67,12 +83,18 @@ class LearningData(object):
         ys.append(y_correct)
         code_pieces.append(CodePiece(left, right, operator, src))
         
+        #only, when there are other operators present ...
+        #(otherwise the following search runs infinitely)
+        if len(self.all_operators) <= 1:
+            return
+
         # pick some other, likely incorrect operator
         other_operator_vector = None
+
         while other_operator_vector == None:
             other_operator = random.choice(self.all_operators)
             if other_operator != operator:
-                other_operator_vector = [0] * len(self.all_operators)
+                other_operator_vector = [0] * operator_embedding_size
                 other_operator_vector[self.all_operators.index(other_operator)] = 1
         
         x_incorrect = left_vector + right_vector + other_operator_vector + left_type_vector + right_type_vector + parent_vector + grand_parent_vector
