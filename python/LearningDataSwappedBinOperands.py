@@ -12,6 +12,12 @@ import Util
 from collections import Counter
 import random
 
+operator_embedding_size = 30   #the number should correspond to the maximum
+                               #length of the operator vector
+                               #if not set, it could accidently happen, that
+                               #the operator vector is to short
+                               #and as a result is not compatible with the model!
+
 type_embedding_size = 5
 node_type_embedding_size = 8 # if changing here, then also change in LearningDataBinOperator
 
@@ -30,6 +36,9 @@ class CodePiece(object):
 class LearningData(object):
     def __init__(self):
         self.all_operators = None
+        self.stats = {}
+
+    def resetStats(self):
         self.stats = {}
 
     def pre_scan(self, first_data_paths, second_data_paths = []):
@@ -64,7 +73,7 @@ class LearningData(object):
         
         left_vector = name_to_vector[left]
         right_vector = name_to_vector[right]
-        operator_vector = [0] * len(self.all_operators)
+        operator_vector = [0] * operator_embedding_size
         operator_vector[self.all_operators.index(operator)] = 1
         left_type_vector = type_to_vector.get(left_type, [0]*type_embedding_size)
         right_type_vector = type_to_vector.get(right_type, [0]*type_embedding_size)
