@@ -84,7 +84,12 @@ def sample_xy_pairs(xs, ys, number_buggy):
 
 if __name__ == '__main__':
     # arguments (for learning new model): what --load <model file> <name to vector file> <type to vector file> <AST node type to vector file> --newData <list of data files in json format>
-    #   what is one of: SwappedArgs, BinOperator, SwappedBinOperands, IncorrectBinaryOperand, IncorrectAssignment
+    #  what is one of: SwappedArgs,
+    #                  BinOperator,
+    #                  SwappedBinOperands,
+    #                  IncorrectBinaryOperand,
+    #                  IncorrectAssignment
+    #                  MissingArg
     #
     # not yet implemented bug patterns are the following:
     #
@@ -156,20 +161,30 @@ if __name__ == '__main__':
     print("Time for prediction (seconds): " + str(round(time_done - time_start)))
 
     ##------------------------------------------------
-    print("Predictions:\n")
-    print("------------\n")
-
     # produce prediction message
-    for idx in range(0, len(xs_validation)):
+    predictions = []
+
+    for idx in range(0, len(xs_newdata)):
         p = ys_prediction[idx][0]    # probab, expect 0, when code is correct
         c = code_pieces_prediction[idx]
+        message = "Prediction : " + str(p) + " | " + what + " | " + c.to_message() + "\n\n"
 
-        message = "Prediction : " + str(p) + " | " + c.to_message() + "\n\n"
+        predictions.append(message)
+
+    # log the messages to file
+    f_inspect = open('predictions.txt', 'w+')
+    for message in predictions:
+        f_inspect.write(message + "\n")
+    print("predictions written to file : predictions.txt")
+    f_inspect.close()
+
+    # print the messages
+    print("Predictions:\n")
+    print("------------\n")
+    for message in predictions:
         print(message + "\n")
-
-    ##------------------------------------------------
-
     print("------------\n")
     print("Predictions finished")
+    ##------------------------------------------------
 
     #-------------------------------------Find------------------------------------------
