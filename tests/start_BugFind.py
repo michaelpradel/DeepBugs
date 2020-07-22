@@ -3,17 +3,27 @@ Created on July 07, 2020
 
 @author: Sabine Zach
 
-Last Changed on July 10, 2020
+Last Changed on July 22, 2020
 
 @by: Sabine Zach
 '''
 # Skript for Testing Bug_Find
 # Tests for all bug patterns
+#
+# called by: $python3 ./tests/start_BugFind.py
+#
+# Prerequisites:
 # Data: data/js/programs_50
+#       data/js/programs_all.txt
+# Models for all patterns: models/what/bug_detection_model
+# what stands for
+#      SwappedArgs
+#      BinOperator
+#      SwappedBinOperands
+#      IncorrectBinaryOperand
 
 import sys
 import json
-import math
 import math
 import time
 from os import getcwd
@@ -55,7 +65,7 @@ def what_to_bugspec(what):
 ##--change 'what' to 'bugspec'----------------------------
 
 ##--------------------------------------------------------
-def extractFromJS(bugspec, all_js_data_files):
+def extract_from_js(bugspec, all_js_data_files):
     ##----------------------------------------------------
     ##  produces calls_xx*.json
     ##       or  binOps_xx*.json files
@@ -75,6 +85,7 @@ def extractFromJS(bugspec, all_js_data_files):
     returned = call( '%s %s %s' %(data_extract_str, all_js_data_files, outfile_str), shell=True)
     if (returned != 0):
         print('extractFromJS returned: %d' %(returned))
+        exit(1)
 
     print('extractFromJS has returned with %d' %(returned))
     print('Created file **%s**' % (outfile_json))
@@ -83,7 +94,7 @@ def extractFromJS(bugspec, all_js_data_files):
     ##return a string of all outfiles, separated by ' '
     data_json = outfile_json
     return data_json
-##------extractFromJS ------------------------------------
+##------extract_from_js ------------------------------------
 
 ##--------------------------------------------------------
 if __name__ == '__main__':
@@ -108,32 +119,33 @@ if __name__ == '__main__':
         bugspec = what_to_bugspec(what)
         print("**" + what + "**\n")
 
-        ############################################
-        ## call extractFromJS for data/js/programs50
-        ############################################
+        ##############################################
+        ## call extract_from_js for data/js/programs50
+        ##############################################
 
         ##-----get input data file names and extract code pieces-----
-        all_js_files = get_all_js_files('data/js/programs_50_all.txt')
-        str_of_json_files = extractFromJS(bugspec, all_js_files)
+        js_txt_file = 'data/js/programs_50_all.txt'
+        all_js_files = get_all_js_files(js_txt_file)
+        str_of_json_files = extract_from_js(bugspec, all_js_files)
 
         ##the command produces calls_*.json files, or binOps*.json files, etc.
         ##depending on bugspec
 
-        #####################
-        ## end  extractFromJS
-        #####################
+        #######################
+        ## end  extract_from_js
+        #######################
 
         ## create arguments for BugFind:
         ##     what --load <model file> <name to vector file> <type to vector file> <AST node type to vector file> --newData <list of data files in json format>
         ## e.g.
-        ## SwappedArgs" "--load" "./SwappedArgs/bug_detection_model", "./token_to_vector.json", "./type_to_vector.json", "./node_type_to_vector.json", "--newData",  "./calls_1.json ./calls_2.json ./calls_3.json"
+        ## SwappedArgs" "--load" "./models/SwappedArgs/bug_detection_model", "./token_to_vector.json", "./type_to_vector.json", "./node_type_to_vector.json", "--newData",  "./calls_1.json ./calls_2.json ./calls_3.json"
 
         #####################
         ## call BugFind
         #####################
         what
         load = " --load"
-        model_file = " ./" + what + "/bug_detection_model"
+        model_file = " ./models/" + what + "/bug_detection_model"
         token_to_vector_file = " ./token_to_vector.json"
         type_to_vector_file = " ./type_to_vector.json"
         node_type_to_vector_file = " ./node_type_to_vector.json"
@@ -152,7 +164,7 @@ if __name__ == '__main__':
         ##check the unix exit code
         if (returned != 0):
             print('can not call BugFind.py, returned: %d' %(returned))
-            exit(1)
+            exit(2)
         print('BugFind.py called successfully: %d' %(returned))
 
         #####################
