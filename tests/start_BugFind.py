@@ -3,7 +3,7 @@ Created on July 07, 2020
 
 @author: Sabine Zach
 
-Last Changed on July 22, 2020
+Last Changed on July 25, 2020
 
 @by: Sabine Zach
 '''
@@ -21,6 +21,8 @@ Last Changed on July 22, 2020
 #      BinOperator
 #      SwappedBinOperands
 #      IncorrectBinaryOperand
+#
+# on line 147 you can set a threshold for the prediction output
 
 import sys
 import json
@@ -136,14 +138,15 @@ if __name__ == '__main__':
         #######################
 
         ## create arguments for BugFind:
-        ##     what --load <model file> <name to vector file> <type to vector file> <AST node type to vector file> --newData <list of data files in json format>
+        ##     <what> <p_threshold> --load <model file> <name to vector file> <type to vector file> <AST node type to vector file> --newData <list of data files in json format>
         ## e.g.
-        ## SwappedArgs" "--load" "./models/SwappedArgs/bug_detection_model", "./token_to_vector.json", "./type_to_vector.json", "./node_type_to_vector.json", "--newData",  "./calls_1.json ./calls_2.json ./calls_3.json"
+        ## SwappedArgs 0.02 --load ./models/SwappedArgs/bug_detection_model ./token_to_vector.json ./type_to_vector.json ./node_type_to_vector.json --newData "./calls_1.json ./calls_2.json ./calls_3.json"
 
         #####################
         ## call BugFind
         #####################
         what
+        p_threshold = " 0.02"    #e.g.
         load = " --load"
         model_file = " ./models/" + what + "/bug_detection_model"
         token_to_vector_file = " ./token_to_vector.json"
@@ -153,7 +156,7 @@ if __name__ == '__main__':
         json_files = ' ' + str_of_json_files
 
         ##construct command for calling
-        call_bugfind_str = 'python3 ./python/BugFind.py ' + what + load + model_file + token_to_vector_file + type_to_vector_file + node_type_to_vector_file + new + json_files
+        call_bugfind_str = 'python3 ./python/BugFind.py ' + what + p_threshold + load + model_file + token_to_vector_file + type_to_vector_file + node_type_to_vector_file + new + json_files
         print("calling BugFind:\n%s" %(call_bugfind_str))
 
         ##execute command

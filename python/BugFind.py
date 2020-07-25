@@ -3,7 +3,7 @@ Created on Jun 23, 2017
 
 @author: Michael Pradel
 
-Last Changed on Apr 24, 2020
+Last Changed on July 25, 2020
 
 @by: Sabine Zach
 '''
@@ -83,7 +83,7 @@ def sample_xy_pairs(xs, ys, number_buggy):
     return sampled_xs, sampled_ys
 
 if __name__ == '__main__':
-    # arguments (for learning new model): what --load <model file> <name to vector file> <type to vector file> <AST node type to vector file> --newData <list of data files in json format>
+    # arguments (for learning new model): what <p_threshold> --load <model file> <name to vector file> <type to vector file> <AST node type to vector file> --newData <list of data files in json format>
     #  what is one of: SwappedArgs,
     #                  BinOperator,
     #                  SwappedBinOperands,
@@ -100,13 +100,14 @@ if __name__ == '__main__':
     print("BugFind started with " + str(sys.argv))
 
     what = sys.argv[1]
-    option = sys.argv[2]
+    p_threshold = float(sys.argv[2])
+    option = sys.argv[3]
     if option == "--load":
-        model_file = sys.argv[3]
-        name_to_vector_file = join(getcwd(), sys.argv[4])
-        type_to_vector_file = join(getcwd(), sys.argv[5])
-        node_type_to_vector_file = join(getcwd(), sys.argv[6])
-        new_data_paths = parse_data_paths(sys.argv[7:])
+        model_file = sys.argv[4]
+        name_to_vector_file = join(getcwd(), sys.argv[5])
+        type_to_vector_file = join(getcwd(), sys.argv[6])
+        node_type_to_vector_file = join(getcwd(), sys.argv[7])
+        new_data_paths = parse_data_paths(sys.argv[8:])
     else:
         print("Incorrect arguments")
         sys.exit(1)
@@ -169,7 +170,13 @@ if __name__ == '__main__':
         c = code_pieces_prediction[idx]
         message = "Prediction : " + str(p) + " | " + what + " | " + c.to_message() + "\n\n"
 
-        predictions.append(message)
+        #only pick codepieces with prediction > p
+        if p > p_threshold:
+            predictions.append(message)
+
+    if predictions == []:
+        no_examples = "No data examples found in input data with prediction > " + str(p_threshold)
+        predictions.append(no_examples)
 
     # log the messages to file
     f_inspect = open('predictions.txt', 'w+')

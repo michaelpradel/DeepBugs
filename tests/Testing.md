@@ -10,6 +10,7 @@
 #
 # author: Sabine Zach, last changed on July, 22, 2020
 
+# from the project's main directory you can
 # start the Testing Routine with the following command
 
 python3 ./tests/start_BugFind.py
