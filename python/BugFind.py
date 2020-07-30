@@ -168,7 +168,7 @@ if __name__ == '__main__':
     for idx in range(0, len(xs_newdata)):
         p = ys_prediction[idx][0]    # probab, expect 0, when code is correct
         c = code_pieces_prediction[idx]
-        message = "Prediction : " + str(p) + " | " + what + " | " + c.to_message() + "\n\n"
+        message = "Prediction : " + str(p) + " | " + what + " | " + c.to_message()
 
         #only pick codepieces with prediction > p
         if p > p_threshold:
