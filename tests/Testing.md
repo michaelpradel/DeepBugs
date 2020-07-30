@@ -27,13 +27,6 @@ For each bug pattern:
    ./models/SwappedBinOperands/bug_detection_model
    etc.
 
-For the programs list:
-
-  * please join ./data/js/programs_50_training.txt
-     and        ./data/js/programs_50_eval.txt
-    and save the result in
-                ./data/js/programs_50_all.txt
-
 You'll find the results of prediction in the following files
   * predict_%time.txt    *%time ist the timestamp
   * there is one file per bug pattern
