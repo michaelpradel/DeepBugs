@@ -3,6 +3,11 @@ DeepBugs: Deep Learning to Find Bugs
 
 DeepBugs is a framework for learning name-based bug detectors from an existing code corpus. See [our OOPSLA'18 paper](http://software-lab.org/publications/oopsla2018_DeepBugs.pdf) for a detailed description.
 
+Quick Start
+--------------
+
+A quick and easy way to play with a simplified version of DeepBugs is a [Jupyter notebook, which you can run on Google's Colaboratory](https://colab.research.google.com/github/michaelpradel/DeepBugs/blob/master/DeepBugs.ipynb). To use the full DeepBugs tool, read on.
+
 Overview
 -------------
 * All commands are called from the main directory.
