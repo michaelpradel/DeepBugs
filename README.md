@@ -83,16 +83,17 @@ Each bug detector addresses a particular bug pattern, e.g.:
 
 #### Step 1: Extract code pieces
 
-`node javascript/extractFromJS.js calls -files <list of files>`
+`node javascript/extractFromJS.js calls --files <list of files>`
 
   * <list of files> contains one or more files to be examined. Code pieces can be extracted from any javascript file (.js) given with path specification relative to the main directory.
   * The command produces `calls_*.json` files, which is data suitable for the `SwappedArgs` bug detector. For the other bug two detectors, replace `calls` with `binOps` in the above command.
 
 #### Step 2: Use a trained classifier to identify bugs
 
-`python3 python/BugFind.py SwappedArgs --load model token_to_vector.json type_to_vector.json node_type_to_vector.json --newData calls_xx*.json`
+`python3 python/BugFind.py SwappedArgs 0.95 --load model token_to_vector.json type_to_vector.json node_type_to_vector.json --newData calls_xx*.json`
 
   * The first argument selects the bug pattern.
+  * 0.95 is the threshold for reporting bugs; higher means fewer warnings of higher certainty.
   * --load: will be deprecated within short time
   * The next argument is the name of the trained classifier. Its path must be given relative to the main direcetory.
   * The next three arguments are vector representations for tokens (here: identifiers and literals), for types, and for AST node types. These files are provided in the repository.
