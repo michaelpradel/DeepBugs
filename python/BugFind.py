@@ -3,7 +3,7 @@ Created on Jun 23, 2017
 
 @author: Michael Pradel
 
-Last Changed on Apr 24, 2020
+Last Changed on July 25, 2020
 
 @by: Sabine Zach
 '''
@@ -83,8 +83,13 @@ def sample_xy_pairs(xs, ys, number_buggy):
     return sampled_xs, sampled_ys
 
 if __name__ == '__main__':
-    # arguments (for learning new model): what --load <model file> <name to vector file> <type to vector file> <AST node type to vector file> --newData <list of data files in json format>
-    #   what is one of: SwappedArgs, BinOperator, SwappedBinOperands, IncorrectBinaryOperand, IncorrectAssignment
+    # arguments (for learning new model): what <p_threshold> --load <model file> <name to vector file> <type to vector file> <AST node type to vector file> --newData <list of data files in json format>
+    #  what is one of: SwappedArgs,
+    #                  BinOperator,
+    #                  SwappedBinOperands,
+    #                  IncorrectBinaryOperand,
+    #                  IncorrectAssignment
+    #                  MissingArg
     #
     # not yet implemented bug patterns are the following:
     #
@@ -95,13 +100,14 @@ if __name__ == '__main__':
     print("BugFind started with " + str(sys.argv))
 
     what = sys.argv[1]
-    option = sys.argv[2]
+    p_threshold = float(sys.argv[2])
+    option = sys.argv[3]
     if option == "--load":
-        model_file = sys.argv[3]
-        name_to_vector_file = join(getcwd(), sys.argv[4])
-        type_to_vector_file = join(getcwd(), sys.argv[5])
-        node_type_to_vector_file = join(getcwd(), sys.argv[6])
-        new_data_paths = parse_data_paths(sys.argv[7:])
+        model_file = sys.argv[4]
+        name_to_vector_file = join(getcwd(), sys.argv[5])
+        type_to_vector_file = join(getcwd(), sys.argv[6])
+        node_type_to_vector_file = join(getcwd(), sys.argv[7])
+        new_data_paths = parse_data_paths(sys.argv[8:])
     else:
         print("Incorrect arguments")
         sys.exit(1)
@@ -156,20 +162,36 @@ if __name__ == '__main__':
     print("Time for prediction (seconds): " + str(round(time_done - time_start)))
 
     ##------------------------------------------------
-    print("Predictions:\n")
-    print("------------\n")
-
     # produce prediction message
-    for idx in range(0, len(xs_validation)):
+    predictions = []
+
+    for idx in range(0, len(xs_newdata)):
         p = ys_prediction[idx][0]    # probab, expect 0, when code is correct
         c = code_pieces_prediction[idx]
+        message = "Prediction : " + str(p) + " | " + what + " | " + c.to_message() + "\n\n"
 
-        message = "Prediction : " + str(p) + " | " + c.to_message() + "\n\n"
+        #only pick codepieces with prediction > p
+        if p > p_threshold:
+            predictions.append(message)
+
+    if predictions == []:
+        no_examples = "No data examples found in input data with prediction > " + str(p_threshold)
+        predictions.append(no_examples)
+
+    # log the messages to file
+    f_inspect = open('predictions.txt', 'w+')
+    for message in predictions:
+        f_inspect.write(message + "\n")
+    print("predictions written to file : predictions.txt")
+    f_inspect.close()
+
+    # print the messages
+    print("Predictions:\n")
+    print("------------\n")
+    for message in predictions:
         print(message + "\n")
-
-    ##------------------------------------------------
-
     print("------------\n")
     print("Predictions finished")
+    ##------------------------------------------------
 
     #-------------------------------------Find------------------------------------------
