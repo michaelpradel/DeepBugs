@@ -3,7 +3,7 @@ Created on Nov 13, 2017
 
 @author: Michael Pradel
 
-Last changed in Mar, 2020
+Last changed in July, 2020
 
 @by: Sabine Zach
 '''
@@ -11,6 +11,12 @@ Last changed in Mar, 2020
 import Util
 from collections import Counter
 import random
+
+operator_embedding_size = 30   #the number should correspond to the maximum
+                               #length of the operator vector
+                               #if not set, it could accidently happen, that
+                               #the operator vector is to short
+                               #and as a result is not compatible with the model!
 
 type_embedding_size = 5
 node_type_embedding_size = 8 # if changing here, then also change in LearningDataBinOperator
@@ -32,6 +38,9 @@ class LearningData(object):
         self.all_operators = None
         self.stats = {}
 
+    def resetStats(self):
+        self.stats = {}
+
     def pre_scan(self, first_data_paths, second_data_paths = []):
         all_operators_set = set()
 
@@ -46,7 +55,7 @@ class LearningData(object):
 
         self.all_operators = list(all_operators_set)
 
-    def code_to_xy_pairs(self, bin_op, xs, ys, name_to_vector, type_to_vector, node_type_to_vector, code_pieces):
+    def code_to_xy_pairs(self, gen_negatives, bin_op, xs, ys, name_to_vector, type_to_vector, node_type_to_vector, code_pieces):
         left = bin_op["left"]
         right = bin_op["right"]
         operator = bin_op["op"]
@@ -64,7 +73,7 @@ class LearningData(object):
         
         left_vector = name_to_vector[left]
         right_vector = name_to_vector[right]
-        operator_vector = [0] * len(self.all_operators)
+        operator_vector = [0] * operator_embedding_size
         operator_vector[self.all_operators.index(operator)] = 1
         left_type_vector = type_to_vector.get(left_type, [0]*type_embedding_size)
         right_type_vector = type_to_vector.get(right_type, [0]*type_embedding_size)
@@ -78,12 +87,13 @@ class LearningData(object):
         ys.append(y_correct)
         code_pieces.append(CodePiece(left, right, operator, src))
         
-        # swap operands
-        x_incorrect = right_vector + left_vector + operator_vector + right_type_vector + left_type_vector + parent_vector + grand_parent_vector
-        y_incorrect = [1]
-        xs.append(x_incorrect)
-        ys.append(y_incorrect)
-        code_pieces.append(CodePiece(right, left, operator, src))
+        # generate negatives: swap operands
+        if gen_negatives:
+            x_incorrect = right_vector + left_vector + operator_vector + right_type_vector + left_type_vector + parent_vector + grand_parent_vector
+            y_incorrect = [1]
+            xs.append(x_incorrect)
+            ys.append(y_incorrect)
+            code_pieces.append(CodePiece(right, left, operator, src))
         
     def anomaly_score(self, y_prediction_orig, y_prediction_changed):
         return y_prediction_orig - y_prediction_changed # higher means more likely to be anomaly in current code

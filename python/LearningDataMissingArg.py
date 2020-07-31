@@ -2,6 +2,10 @@
 Created on Apr 9, 2018
 
 @author: Michael Pradel
+
+Last changed in July, 2020
+
+@by: Sabine Zach
 '''
 
 import Util
@@ -26,6 +30,11 @@ class LearningData(object):
         self.stats = {"calls": 0, "calls_with_too_many_args": 0, "calls_with_too_few_args": 0, "calls_with_known_names": 0,
                       "calls_with_known_base_object": 0}
     
+    def resetStats(self):
+        self.stats = {"calls": 0, "calls_with_too_many_args": 0, "calls_with_too_few_args": 0, "calls_with_known_names": 0,
+                      "calls_with_known_base_object": 0
+}
+
     def pre_scan(self, training_data_paths, validation_data_paths):
         print("Stats on training data")
         self.gather_stats(training_data_paths)
@@ -51,7 +60,7 @@ class LearningData(object):
         print("  " + "\n  ".join(str(x) for x in argument_to_freq.most_common(10)))
         Util.analyze_histograms(argument_to_freq)
         
-    def code_to_xy_pairs(self, call, xs, ys, name_to_vector, type_to_vector, node_type_to_vector, calls=None):
+    def code_to_xy_pairs(self, gen_negatives, call, xs, ys, name_to_vector, type_to_vector, node_type_to_vector, calls=None):
         arguments = call["arguments"]
         self.stats["calls"] += 1
         if len(arguments) > max_nb_args:
@@ -124,35 +133,36 @@ class LearningData(object):
             calls.append(CodePiece(callee_string, argument_strings, call["src"]))
         
         # for the negative example, remove a randomly picked argument
-        idx_to_remove = random.randint(0, len(argument_vectors)-1)
-        del argument_vectors[idx_to_remove]
-        del argument_type_vectors[idx_to_remove]
-        del parameter_vectors[idx_to_remove]
-        x_buggy = callee_vector + base_vector
-        # add argument vectors (and pad if not enough available)
-        for i in range(max_nb_args):
-            if len(argument_vectors) > i:
-                x_buggy += argument_vectors[i]
-            else:
-                x_buggy += [0]*name_embedding_size
-        # add argument type vectors (and pad if not enough available)
-        for i in range(max_nb_args):
-            if len(argument_type_vectors) > i:
-                x_buggy += argument_type_vectors[i]
-            else:
-                x_buggy += [0]*type_embedding_size
-        # add parameter vectors (and pad if not enough available)
-        for i in range(max_nb_args):
-            if len(parameter_vectors) > i:
-                x_buggy += parameter_vectors[i]
-            else:
-                x_buggy += [0]*name_embedding_size
-        y_buggy = [1]
+        if gen_negatives:
+            idx_to_remove = random.randint(0, len(argument_vectors)-1)
+            del argument_vectors[idx_to_remove]
+            del argument_type_vectors[idx_to_remove]
+            del parameter_vectors[idx_to_remove]
+            x_buggy = callee_vector + base_vector
+            # add argument vectors (and pad if not enough available)
+            for i in range(max_nb_args):
+                if len(argument_vectors) > i:
+                    x_buggy += argument_vectors[i]
+                else:
+                    x_buggy += [0]*name_embedding_size
+            # add argument type vectors (and pad if not enough available)
+            for i in range(max_nb_args):
+                if len(argument_type_vectors) > i:
+                    x_buggy += argument_type_vectors[i]
+                else:
+                    x_buggy += [0]*type_embedding_size
+            # add parameter vectors (and pad if not enough available)
+            for i in range(max_nb_args):
+                if len(parameter_vectors) > i:
+                    x_buggy += parameter_vectors[i]
+                else:
+                    x_buggy += [0]*name_embedding_size
+            y_buggy = [1]
         
-        xs.append(x_buggy)
-        ys.append(y_buggy)
-        if calls != None:
-            calls.append(CodePiece(callee_string, argument_strings, call["src"]))
+            xs.append(x_buggy)
+            ys.append(y_buggy)
+            if calls != None:
+                calls.append(CodePiece(callee_string, argument_strings, call["src"]))
             
     def anomaly_score(self, y_prediction_orig, y_prediction_changed):
         return y_prediction_orig # higher means more likely to be anomaly in current code

@@ -2,6 +2,10 @@
 Created on Nov 14, 2017
 
 @author: Michael Pradel
+
+Last changed in July, 2020
+
+@by: Sabine Zach
 '''
 
 import Util
@@ -26,6 +30,9 @@ RHS = namedtuple('Assignment', ['rhs', 'type'])
 class LearningData(object):
     def __init__(self):
         self.file_to_RHSs = dict() # string to set of RHSs
+        self.stats = {}
+
+    def resetStats(self):
         self.stats = {}
 
     def pre_scan(self, training_data_paths, validation_data_paths):
@@ -82,7 +89,7 @@ class LearningData(object):
         self.pad_with_default(context_vector, nb_context_ids * embedding_size, 0)
         return context_vector
     
-    def code_to_xy_pairs(self, assignment, xs, ys, name_to_vector, type_to_vector, node_type_to_vector, code_pieces):
+    def code_to_xy_pairs(self, gen_negatives, assignment, xs, ys, name_to_vector, type_to_vector, node_type_to_vector, code_pieces):
         lhs = assignment["lhs"]
         rhs = assignment["rhs"]
         rhs_type = assignment["rhsType"]
@@ -105,21 +112,6 @@ class LearningData(object):
         (pre_context, post_context, all_context) = self.select_context_ids(lhs, rhs, context)
         context_vector = self.context_ids_to_embeddings(pre_context, post_context, name_to_vector)
                 
-        # pick an alternative rhs from the context ids
-        if len(all_context) == 0:
-            return
-        tries_left = 100
-        found = False
-        while (not found) and tries_left > 0:
-            other_rhs = random.choice(all_context)
-            if other_rhs in name_to_vector:
-                found = True
-            tries_left -= 1
-        if not found:
-            return
-        other_rhs_vector = name_to_vector[other_rhs] 
-        other_rhs_type_vector = type_to_vector["unknown"]
-
         # for all xy-pairs: y value = probability that incorrect
         x_correct = lhs_vector + rhs_vector + rhs_type_vector + parent_vector + grand_parent_vector + context_vector
         y_correct = [0]
@@ -127,11 +119,27 @@ class LearningData(object):
         ys.append(y_correct)
         code_pieces.append(CodePiece(lhs, rhs, src))
         
-        x_incorrect = lhs_vector + other_rhs_vector + other_rhs_type_vector + parent_vector + grand_parent_vector + context_vector
-        y_incorrect = [1]
-        xs.append(x_incorrect)
-        ys.append(y_incorrect)
-        code_pieces.append(CodePiece(lhs, rhs, src))
+        # pick an alternative rhs from the context ids
+        if gen_negatives:
+            if len(all_context) == 0:
+                return
+            tries_left = 100
+            found = False
+            while (not found) and tries_left > 0:
+                other_rhs = random.choice(all_context)
+                if other_rhs in name_to_vector:
+                    found = True
+                tries_left -= 1
+            if not found:
+                return
+            other_rhs_vector = name_to_vector[other_rhs] 
+            other_rhs_type_vector = type_to_vector["unknown"]
+
+            x_incorrect = lhs_vector + other_rhs_vector + other_rhs_type_vector + parent_vector + grand_parent_vector + context_vector
+            y_incorrect = [1]
+            xs.append(x_incorrect)
+            ys.append(y_incorrect)
+            code_pieces.append(CodePiece(lhs, rhs, src))
      
     def anomaly_score(self, y_prediction_orig, y_prediction_changed):
         return y_prediction_orig
