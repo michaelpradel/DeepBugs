@@ -3,7 +3,7 @@ Created on Jun 23, 2017
 
 @author: Michael Pradel
 
-Last Changed on Apr 28, 2020
+Last Changed on July 28, 2020
 
 @by: Sabine Zach
 '''
@@ -55,13 +55,13 @@ def parse_data_paths(args):
                 sys.exit(0)
     return [training_data_paths, eval_data_paths]
 
-def prepare_xy_pairs(data_paths, learning_data):
+def prepare_xy_pairs(gen_negatives, data_paths, learning_data):
     xs = []
     ys = []
     code_pieces = [] # keep calls in addition to encoding as x,y pairs (to report detected anomalies)
     
     for code_piece in Util.DataReader(data_paths):
-        learning_data.code_to_xy_pairs(code_piece, xs, ys, name_to_vector, type_to_vector, node_type_to_vector, code_pieces)
+        learning_data.code_to_xy_pairs(gen_negatives, code_piece, xs, ys, name_to_vector, type_to_vector, node_type_to_vector, code_pieces)
     x_length = len(xs[0])
     
     print("Stats: " + str(learning_data.stats))
@@ -88,7 +88,7 @@ def sample_xy_pairs(xs, ys, number_buggy):
 
 if __name__ == '__main__':
     # arguments (for learning new model): what --learn <name to vector file> <type to vector file> <AST node type to vector file> --trainingData <list of call data files> --validationData <list of call data files>
-    #   what is one of: SwappedArgs, BinOperator, SwappedBinOperands, IncorrectBinaryOperand, IncorrectAssignment
+    #   what is one of: SwappedArgs, BinOperator, SwappedBinOperands, IncorrectBinaryOperand, MissingArg
     print("BugDetection started with " + str(sys.argv))
     time_start = time.time()
     what = sys.argv[1]
@@ -117,10 +117,12 @@ if __name__ == '__main__':
         learning_data = LearningDataSwappedBinOperands.LearningData()
     elif what == "IncorrectBinaryOperand":
         learning_data = LearningDataIncorrectBinaryOperand.LearningData()
-    elif what == "IncorrectAssignment":
-        learning_data = LearningDataIncorrectAssignment.LearningData()
     elif what == "MissingArg":
         learning_data = LearningDataMissingArg.LearningData()
+    elif what == "IncorrectAssignment":
+        learning_data = LearningDataIncorrectAssignment.LearningData()
+    elif what == "IncorrectAssignment_with_parents":
+        learning_data = LearningDataIncorrectAssignment_with_parents.LearningData()
     else:
         print("Incorrect argument for 'what'")
         sys.exit(1)
@@ -128,10 +130,11 @@ if __name__ == '__main__':
     print("Statistics on training data:")
     learning_data.pre_scan(training_data_paths, validation_data_paths)
     
-    # prepare x,y pairs for learning and validation
+    # prepare x,y pairs for learning and validation, therefore generate negatives
+    gen_negatives = True
     print("Preparing xy pairs for training data:")
     learning_data.resetStats()
-    xs_training, ys_training, _ = prepare_xy_pairs(training_data_paths, learning_data)
+    xs_training, ys_training, _ = prepare_xy_pairs(gen_negatives, training_data_paths, learning_data)
     x_length = len(xs_training[0])
     print("Training examples   : " + str(len(xs_training)))
     print(learning_data.stats)

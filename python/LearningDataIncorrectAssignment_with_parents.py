@@ -2,6 +2,10 @@
 Created on Nov 14, 2017
 
 @author: Michael Pradel
+
+Last changed in July, 2020
+
+@by: Sabine Zach
 '''
 
 import Util
@@ -26,6 +30,9 @@ class LearningData(object):
         self.file_to_RHSs = dict() # string to set of RHSs
         self.stats = {}
 
+    def resetStats(self):
+        self.stats = {}
+
     def pre_scan(self, training_data_paths, validation_data_paths):
         for assignment in Util.DataReader(training_data_paths):
             file = assignment["src"].split(" : ")[0]
@@ -37,7 +44,7 @@ class LearningData(object):
             rhsides = self.file_to_RHSs.setdefault(file, set())
             rhsides.add(RHS(assignment["rhs"], assignment["rhsType"]))
     
-    def code_to_xy_pairs(self, assignment, xs, ys, name_to_vector, type_to_vector, node_type_to_vector, code_pieces):
+    def code_to_xy_pairs(self, gen_negatives, assignment, xs, ys, name_to_vector, type_to_vector, node_type_to_vector, code_pieces):
         lhs = assignment["lhs"]
         rhs = assignment["rhs"]
         rhs_type = assignment["rhsType"]
@@ -55,20 +62,6 @@ class LearningData(object):
         parent_vector = node_type_to_vector[parent]
         grand_parent_vector = node_type_to_vector[grand_parent]
         
-        # find an alternative rhs in the same file
-        file = src.split(" : ")[0]
-        all_RHSs = self.file_to_RHSs[file]
-        tries_left = 100
-        found = False
-        while (not found) and tries_left > 0:
-            other_rhs = random.choice(list(all_RHSs))
-            if other_rhs.rhs in name_to_vector and other_rhs.rhs != rhs:
-                found = True
-            tries_left -= 1
-            
-        if not found:
-            return
-        
         # for all xy-pairs: y value = probability that incorrect
         x_correct = lhs_vector + rhs_vector + rhs_type_vector + parent_vector + grand_parent_vector
         y_correct = [0]
@@ -76,13 +69,28 @@ class LearningData(object):
         ys.append(y_correct)
         code_pieces.append(CodePiece(lhs, rhs, src))
         
-        other_rhs_vector = name_to_vector[other_rhs.rhs]
-        other_rhs_type_vector = type_to_vector[other_rhs.type]
-        x_incorrect = lhs_vector + other_rhs_vector + other_rhs_type_vector + parent_vector + grand_parent_vector
-        y_incorrect = [1]
-        xs.append(x_incorrect)
-        ys.append(y_incorrect)
-        code_pieces.append(CodePiece(lhs, rhs, src))
+        # find an alternative rhs in the same file
+        gen_negatives:
+            file = src.split(" : ")[0]
+            all_RHSs = self.file_to_RHSs[file]
+            tries_left = 100
+            found = False
+            while (not found) and tries_left > 0:
+                other_rhs = random.choice(list(all_RHSs))
+                if other_rhs.rhs in name_to_vector and other_rhs.rhs != rhs:
+                    found = True
+                tries_left -= 1
+            
+            if not found:
+                return
+        
+            other_rhs_vector = name_to_vector[other_rhs.rhs]
+            other_rhs_type_vector = type_to_vector[other_rhs.type]
+            x_incorrect = lhs_vector + other_rhs_vector + other_rhs_type_vector + parent_vector + grand_parent_vector
+            y_incorrect = [1]
+            xs.append(x_incorrect)
+            ys.append(y_incorrect)
+            code_pieces.append(CodePiece(lhs, rhs, src))
      
     def anomaly_score(self, y_prediction_orig, y_prediction_changed):
         return y_prediction_orig

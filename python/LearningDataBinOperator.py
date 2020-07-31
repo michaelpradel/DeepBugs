@@ -3,7 +3,7 @@ Created on Nov 9, 2017
 
 @author: Michael Pradel
 
-Last changed in Mar, 2020
+Last changed in July, 2020
 
 @by: Sabine Zach
 '''
@@ -53,7 +53,7 @@ class LearningData(object):
 
         self.all_operators = list(all_operators_set)
 
-    def code_to_xy_pairs(self, bin_op, xs, ys, name_to_vector, type_to_vector, node_type_to_vector, code_pieces):
+    def code_to_xy_pairs(self, gen_negatives, bin_op, xs, ys, name_to_vector, type_to_vector, node_type_to_vector, code_pieces):
         left = bin_op["left"]
         right = bin_op["right"]
         operator = bin_op["op"]
@@ -88,20 +88,21 @@ class LearningData(object):
         if len(self.all_operators) <= 1:
             return
 
-        # pick some other, likely incorrect operator
-        other_operator_vector = None
+        # generate negatives: pick some other, likely incorrect operator
+        if gen_negatives:
+            other_operator_vector = None
 
-        while other_operator_vector == None:
-            other_operator = random.choice(self.all_operators)
-            if other_operator != operator:
-                other_operator_vector = [0] * operator_embedding_size
-                other_operator_vector[self.all_operators.index(other_operator)] = 1
+            while other_operator_vector == None:
+                other_operator = random.choice(self.all_operators)
+                if other_operator != operator:
+                    other_operator_vector = [0] * operator_embedding_size
+                    other_operator_vector[self.all_operators.index(other_operator)] = 1
         
-        x_incorrect = left_vector + right_vector + other_operator_vector + left_type_vector + right_type_vector + parent_vector + grand_parent_vector
-        y_incorrect = [1]
-        xs.append(x_incorrect)
-        ys.append(y_incorrect)
-        code_pieces.append(CodePiece(left, right, other_operator, src))
+            x_incorrect = left_vector + right_vector + other_operator_vector + left_type_vector + right_type_vector + parent_vector + grand_parent_vector
+            y_incorrect = [1]
+            xs.append(x_incorrect)
+            ys.append(y_incorrect)
+            code_pieces.append(CodePiece(left, right, other_operator, src))
             
     def anomaly_score(self, y_prediction_orig, y_prediction_changed):
         return y_prediction_orig
