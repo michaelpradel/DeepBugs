@@ -6,6 +6,11 @@
 /data/js/programs_5000
 /data/js/programs_all
 /data/tokens
+/data/calls
+/data/binOps
+/data/embeddings
+/data/results
+/myenv
 *.swp
 *~
 __pycache__
