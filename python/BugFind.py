@@ -144,6 +144,7 @@ if __name__ == '__main__':
     learning_data.resetStats()
     
     # prepare x,y pairs
+    gen_negatives = False
     print("Preparing xy pairs for new data:")
     xs_newdata, ys_dummy, code_pieces_prediction = prepare_xy_pairs(gen_negatives, new_data_paths, learning_data)
     x_length = len(xs_newdata[0])
