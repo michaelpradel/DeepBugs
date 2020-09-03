@@ -3,8 +3,6 @@ Created on Jun 23, 2017
 
 @author: Michael Pradel
 
-Last Changed on Sept 01, 2020
-
 @by: Sabine Zach
 '''
 
