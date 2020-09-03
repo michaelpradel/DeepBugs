@@ -51,13 +51,13 @@ def parse_data_paths(args):
                 sys.exit(0)
     return new_data_paths
 
-def prepare_xy_pairs(data_paths, learning_data):
+def prepare_xy_pairs(gen_negatives, data_paths, learning_data):
     xs = []
     ys = []
     code_pieces = [] # keep calls in addition to encoding as x,y pairs (to report detected anomalies)
     
     for code_piece in Util.DataReader(data_paths):
-        learning_data.code_to_xy_pairs(code_piece, xs, ys, name_to_vector, type_to_vector, node_type_to_vector, code_pieces)
+        learning_data.code_to_xy_pairs(gen_negatives, code_piece, xs, ys, name_to_vector, type_to_vector, node_type_to_vector, code_pieces)
     x_length = len(xs[0])
     
     print("Stats: " + str(learning_data.stats))
@@ -145,7 +145,7 @@ if __name__ == '__main__':
     
     # prepare x,y pairs
     print("Preparing xy pairs for new data:")
-    xs_newdata, ys_dummy, code_pieces_prediction = prepare_xy_pairs(new_data_paths, learning_data)
+    xs_newdata, ys_dummy, code_pieces_prediction = prepare_xy_pairs(gen_negatives, new_data_paths, learning_data)
     x_length = len(xs_newdata[0])
 
     print("New Data examples   : " + str(len(xs_newdata)))
