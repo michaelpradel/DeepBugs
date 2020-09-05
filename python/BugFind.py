@@ -86,13 +86,13 @@ if __name__ == '__main__':
     #                  BinOperator,
     #                  SwappedBinOperands,
     #                  IncorrectBinaryOperand,
-    #                  IncorrectAssignment
     #                  MissingArg
+    #                  IncorrectAssignment
     #
     # not yet implemented bug patterns are the following:
     #
-    # "IncorrectAssignment"
     # "MissingArg"
+    # "IncorrectAssignment"
     #
 
     print("BugFind started with " + str(sys.argv))
@@ -129,10 +129,10 @@ if __name__ == '__main__':
     elif what == "IncorrectBinaryOperand":
         learning_data = LearningDataIncorrectBinaryOperand.LearningData()
     ##not yet used
-    ##elif what == "IncorrectAssignment":
-    ##    learning_data = LearningDataIncorrectAssignment.LearningData()
     ##elif what == "MissingArg":
     ##    learning_data = LearningDataMissingArg.LearningData()
+    ##elif what == "IncorrectAssignment":
+    ##    learning_data = LearningDataIncorrectAssignment.LearningData()
     else:
         print("Incorrect argument for 'what'")
         sys.exit(1)

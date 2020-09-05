@@ -3,7 +3,7 @@ Created on Jun 23, 2017
 
 @author: Michael Pradel
 
-Last Changed on July 28, 2020
+Last Changed on Sept 04, 2020
 
 @by: Sabine Zach
 '''
@@ -14,8 +14,10 @@ from os.path import join
 from os import getcwd
 from collections import Counter, namedtuple
 import math
-from keras.models import Sequential, load_model
-from keras.layers.core import Dense, Dropout
+
+from tensorflow.python.keras.models import Sequential, load_model
+from tensorflow.python.keras.layers.core import Dense, Dropout
+
 import random
 import time
 import numpy as np
@@ -88,7 +90,7 @@ def sample_xy_pairs(xs, ys, number_buggy):
 
 if __name__ == '__main__':
     # arguments (for learning new model): what --learn <name to vector file> <type to vector file> <AST node type to vector file> --trainingData <list of call data files> --validationData <list of call data files>
-    #   what is one of: SwappedArgs, BinOperator, SwappedBinOperands, IncorrectBinaryOperand, MissingArg
+    #   what is one of: SwappedArgs, BinOperator, SwappedBinOperands, IncorrectBinaryOperand, IncorrectAssignment, MissingArg
     print("BugDetection started with " + str(sys.argv))
     time_start = time.time()
     what = sys.argv[1]
@@ -117,10 +119,11 @@ if __name__ == '__main__':
         learning_data = LearningDataSwappedBinOperands.LearningData()
     elif what == "IncorrectBinaryOperand":
         learning_data = LearningDataIncorrectBinaryOperand.LearningData()
-    elif what == "MissingArg":
-        learning_data = LearningDataMissingArg.LearningData()
-    elif what == "IncorrectAssignment":
-        learning_data = LearningDataIncorrectAssignment.LearningData()
+    ## not yet implemented
+    ##elif what == "IncorrectAssignment":
+    ##    learning_data = LearningDataIncorrectAssignment.LearningData()
+    ##elif what == "MissingArg":
+    ##    learning_data = LearningDataMissingArg.LearningData()
     elif what == "IncorrectAssignment_with_parents":
         learning_data = LearningDataIncorrectAssignment_with_parents.LearningData()
     else:
@@ -152,7 +155,7 @@ if __name__ == '__main__':
     history = model.fit(xs_training, ys_training, batch_size=100, epochs=10, verbose=1)
         
     time_stamp = math.floor(time.time() * 1000)
-    model.save("bug_detection_model_"+str(time_stamp))
+    model.save("bug_detection_model_"+str(time_stamp)+".keras")
     
     time_learning_done = time.time()
     print("Time for learning (seconds): " + str(round(time_learning_done - time_start)))
@@ -160,7 +163,7 @@ if __name__ == '__main__':
     # prepare validation data
     print("Preparing xy pairs for validation data:")
     learning_data.resetStats()
-    xs_validation, ys_validation, code_pieces_validation = prepare_xy_pairs(validation_data_paths, learning_data)
+    xs_validation, ys_validation, code_pieces_validation = prepare_xy_pairs(gen_negatives, validation_data_paths, learning_data)
     print("Validation examples : " + str(len(xs_validation)))
     print(learning_data.stats)
     
