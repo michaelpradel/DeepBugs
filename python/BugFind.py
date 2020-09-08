@@ -3,6 +3,8 @@ Created on Jun 23, 2017
 
 @author: Michael Pradel
 
+Last Changed on Sept 08, 2020
+
 @by: Sabine Zach
 '''
 
@@ -12,8 +14,8 @@ from os.path import join
 from os import getcwd
 from collections import Counter, namedtuple
 import math
-from keras.models import Sequential, load_model
-from keras.layers.core import Dense, Dropout
+from tensorflow.python.keras.models import Sequential, load_model
+from tensorflow.python.keras.layers.core import Dense, Dropout
 import random
 import time
 import numpy as np
