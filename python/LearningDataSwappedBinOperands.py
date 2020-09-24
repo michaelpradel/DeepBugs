@@ -3,7 +3,7 @@ Created on Nov 13, 2017
 
 @author: Michael Pradel
 
-Last changed in Mar, 2020
+Last changed in July, 2020
 
 @by: Sabine Zach
 '''
@@ -55,7 +55,7 @@ class LearningData(object):
 
         self.all_operators = list(all_operators_set)
 
-    def code_to_xy_pairs(self, bin_op, xs, ys, name_to_vector, type_to_vector, node_type_to_vector, code_pieces):
+    def code_to_xy_pairs(self, gen_negatives, bin_op, xs, ys, name_to_vector, type_to_vector, node_type_to_vector, code_pieces):
         left = bin_op["left"]
         right = bin_op["right"]
         operator = bin_op["op"]
@@ -87,12 +87,13 @@ class LearningData(object):
         ys.append(y_correct)
         code_pieces.append(CodePiece(left, right, operator, src))
         
-        # swap operands
-        x_incorrect = right_vector + left_vector + operator_vector + right_type_vector + left_type_vector + parent_vector + grand_parent_vector
-        y_incorrect = [1]
-        xs.append(x_incorrect)
-        ys.append(y_incorrect)
-        code_pieces.append(CodePiece(right, left, operator, src))
+        # generate negatives: swap operands
+        if gen_negatives:
+            x_incorrect = right_vector + left_vector + operator_vector + right_type_vector + left_type_vector + parent_vector + grand_parent_vector
+            y_incorrect = [1]
+            xs.append(x_incorrect)
+            ys.append(y_incorrect)
+            code_pieces.append(CodePiece(right, left, operator, src))
         
     def anomaly_score(self, y_prediction_orig, y_prediction_changed):
         return y_prediction_orig - y_prediction_changed # higher means more likely to be anomaly in current code

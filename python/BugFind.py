@@ -3,7 +3,7 @@ Created on Jun 23, 2017
 
 @author: Michael Pradel
 
-Last Changed on July 25, 2020
+Last Changed on Sept 08, 2020
 
 @by: Sabine Zach
 '''
@@ -14,8 +14,8 @@ from os.path import join
 from os import getcwd
 from collections import Counter, namedtuple
 import math
-from keras.models import Sequential, load_model
-from keras.layers.core import Dense, Dropout
+from tensorflow.python.keras.models import Sequential, load_model
+from tensorflow.python.keras.layers.core import Dense, Dropout
 import random
 import time
 import numpy as np
@@ -51,13 +51,13 @@ def parse_data_paths(args):
                 sys.exit(0)
     return new_data_paths
 
-def prepare_xy_pairs(data_paths, learning_data):
+def prepare_xy_pairs(gen_negatives, data_paths, learning_data):
     xs = []
     ys = []
     code_pieces = [] # keep calls in addition to encoding as x,y pairs (to report detected anomalies)
     
     for code_piece in Util.DataReader(data_paths):
-        learning_data.code_to_xy_pairs(code_piece, xs, ys, name_to_vector, type_to_vector, node_type_to_vector, code_pieces)
+        learning_data.code_to_xy_pairs(gen_negatives, code_piece, xs, ys, name_to_vector, type_to_vector, node_type_to_vector, code_pieces)
     x_length = len(xs[0])
     
     print("Stats: " + str(learning_data.stats))
@@ -88,13 +88,13 @@ if __name__ == '__main__':
     #                  BinOperator,
     #                  SwappedBinOperands,
     #                  IncorrectBinaryOperand,
-    #                  IncorrectAssignment
     #                  MissingArg
+    #                  IncorrectAssignment
     #
     # not yet implemented bug patterns are the following:
     #
-    # "IncorrectAssignment"
     # "MissingArg"
+    # "IncorrectAssignment"
     #
 
     print("BugFind started with " + str(sys.argv))
@@ -131,10 +131,10 @@ if __name__ == '__main__':
     elif what == "IncorrectBinaryOperand":
         learning_data = LearningDataIncorrectBinaryOperand.LearningData()
     ##not yet used
-    ##elif what == "IncorrectAssignment":
-    ##    learning_data = LearningDataIncorrectAssignment.LearningData()
     ##elif what == "MissingArg":
     ##    learning_data = LearningDataMissingArg.LearningData()
+    ##elif what == "IncorrectAssignment":
+    ##    learning_data = LearningDataIncorrectAssignment.LearningData()
     else:
         print("Incorrect argument for 'what'")
         sys.exit(1)
@@ -144,8 +144,9 @@ if __name__ == '__main__':
     learning_data.resetStats()
     
     # prepare x,y pairs
+    gen_negatives = False
     print("Preparing xy pairs for new data:")
-    xs_newdata, ys_dummy, code_pieces_prediction = prepare_xy_pairs(new_data_paths, learning_data)
+    xs_newdata, ys_dummy, code_pieces_prediction = prepare_xy_pairs(gen_negatives, new_data_paths, learning_data)
     x_length = len(xs_newdata[0])
 
     print("New Data examples   : " + str(len(xs_newdata)))
