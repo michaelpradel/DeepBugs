@@ -10,6 +10,8 @@
 /data/binOps
 /data/embeddings
 /data/results
+/data/known_bugs
+/data/top_JS_repos
 /myenv
 *.swp
 *~
