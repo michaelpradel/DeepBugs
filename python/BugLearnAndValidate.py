@@ -152,7 +152,7 @@ if __name__ == '__main__':
     history = model.fit(xs_training, ys_training, batch_size=100, epochs=10, verbose=1)
         
     time_stamp = math.floor(time.time() * 1000)
-    model.save("bug_detection_model_"+str(time_stamp)+".keras")
+    model.save("bug_detection_model_"+str(time_stamp))
     
     time_learning_done = time.time()
     print("Time for learning (seconds): " + str(round(time_learning_done - time_start)))
