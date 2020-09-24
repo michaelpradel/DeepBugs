@@ -14,9 +14,10 @@ import random
 
 from numpy.random import normal
 
-kept_main_tokens = 10000
+from HyperParameters import name_embedding_size
 
-embedding_size = 200
+
+kept_main_tokens = 10000
 
 def count_samples(data_paths):
     total_examples = 0
@@ -27,7 +28,7 @@ def count_samples(data_paths):
 
 def create_random_embedding():
     embedding = []
-    for _ in range(0,embedding_size):
+    for _ in range(0, name_embedding_size):
 #         random_bit = round(random.random())
         random_nb = normal(0.0, 0.7)  # Gaussian distribution that looks roughly like the values in learned embeddings
         embedding.append(random_nb)

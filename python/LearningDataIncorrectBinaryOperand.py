@@ -12,14 +12,14 @@ import Util
 from collections import namedtuple
 import random
 
+from HyperParameters import type_embedding_size, node_type_embedding_size
+
 operator_embedding_size = 30   #the number should correspond to the maximum
                                #length of the operator vector
                                #if not set, it could accidently happen, that
                                #the operator vector is to short
                                #and as a result is not compatible with the model!
 
-type_embedding_size = 5
-node_type_embedding_size = 8 # if changing here, then also change in LearningDataBinOperator
 
 class CodePiece(object):
     def __init__(self, left, right, op, src):

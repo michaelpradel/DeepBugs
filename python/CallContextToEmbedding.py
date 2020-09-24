@@ -12,10 +12,8 @@ import time
 import random
 
 import Util
+from HyperParameters import file_name_embedding_size, type_embedding_size
 
-# if changing the following, also change in AnomalyDetector
-filename_embedding_size = 50
-type_embedding_size = 5
 
 def create_random_embedding(size, used_embeddings):
     while True:
@@ -38,7 +36,7 @@ if __name__ == '__main__':
     for call in Util.DataReader(call_data_paths):
         filename = call["filename"]
         if not (filename in filename_to_vector):
-            filename_embedding = create_random_embedding(filename_embedding_size, filename_embeddings)
+            filename_embedding = create_random_embedding(file_name_embedding_size, filename_embeddings)
             filename_to_vector[filename] = filename_embedding
         argument_types = call["argumentTypes"]
         for argument_type in argument_types:

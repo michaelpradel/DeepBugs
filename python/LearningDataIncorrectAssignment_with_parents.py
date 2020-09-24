@@ -12,7 +12,8 @@ import Util
 from collections import namedtuple
 import random
 
-type_embedding_size = 5
+from HyperParameters import type_embedding_size
+
 
 class CodePiece(object):
     def __init__(self, lhs, rhs, src):

@@ -11,9 +11,8 @@ Last changed in July, 2020
 import Util
 from collections import Counter
 
-name_embedding_size = 200
-file_name_embedding_size = 50
-type_embedding_size = 5
+from HyperParameters import name_embedding_size, type_embedding_size
+
 
 class CodePiece(object):
     def __init__(self, callee, arguments, src):

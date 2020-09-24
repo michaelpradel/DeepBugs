@@ -28,10 +28,6 @@ import LearningDataIncorrectBinaryOperand
 ##import LearningDataIncorrectAssignment
 ##import LearningDataMissingArg
 
-##not used
-##name_embedding_size = 200
-##file_name_embedding_size = 50
-##type_embedding_size = 5
 
 Anomaly = namedtuple("Anomaly", ["message", "score"])
 

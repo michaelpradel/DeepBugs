@@ -12,8 +12,9 @@ import Util
 from collections import Counter
 import random
 
-name_embedding_size = 200
-type_embedding_size = 5
+from HyperParameters import name_embedding_size, type_embedding_size
+
+
 max_nb_args = 2
 
 class CodePiece(object):

@@ -14,10 +14,12 @@ import json
 from gensim.models import Word2Vec
 from gensim.models.fasttext import FastText
 
+from HyperParameters import name_embedding_size
+
 nb_tokens_in_context = 20
 kept_tokens = 10000
 
-embedding_size = 200
+
 
 
 class EncodedSequenceReader(object):
@@ -49,7 +51,7 @@ if __name__ == '__main__':
     token_seqs = EncodedSequenceReader(data_paths)
     # original DeepBugs model (as in OOPSLA'18 paper)
     model = Word2Vec(token_seqs, min_count=1,
-                     window=nb_tokens_in_context/2, size=embedding_size, workers=40)
+                     window=nb_tokens_in_context/2, size=name_embedding_size, workers=40)
 
     # optimal hyperparameters according to IdBench:
     # w2v-cbow

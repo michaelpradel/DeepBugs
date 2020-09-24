@@ -12,8 +12,8 @@ import Util
 from collections import namedtuple
 import random
 
-embedding_size = 200
-type_embedding_size = 5
+from HyperParameters import name_embedding_size, type_embedding_size
+
 nb_context_ids = 6 # assumption: even number and <= identifierContextWindowSize in JS data extractor
 
 class CodePiece(object):
@@ -79,14 +79,14 @@ class LearningData(object):
             if context_id in name_to_vector:
                 context_vector += name_to_vector[context_id]
             else:
-                context_vector += [0]*embedding_size
-        self.pad_with_default(context_vector, (nb_context_ids/2) * embedding_size, 0)
+                context_vector += [0]*name_embedding_size
+        self.pad_with_default(context_vector, (nb_context_ids/2) * name_embedding_size, 0)
         for context_id in post_context:
             if context_id in name_to_vector:
                 context_vector += name_to_vector[context_id]
             else:
-                context_vector += [0]*embedding_size  
-        self.pad_with_default(context_vector, nb_context_ids * embedding_size, 0)
+                context_vector += [0]*name_embedding_size  
+        self.pad_with_default(context_vector, nb_context_ids * name_embedding_size, 0)
         return context_vector
     
     def code_to_xy_pairs(self, gen_negatives, assignment, xs, ys, name_to_vector, type_to_vector, node_type_to_vector, code_pieces):

@@ -22,7 +22,6 @@ nb_tokens_in_context = 20
 kept_main_tokens = 10000
 kept_context_tokens = 1000
 
-embedding_size = 200
 batch_size = 50
 nb_epochs = 2
 sampling_rate = 1
