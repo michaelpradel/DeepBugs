@@ -125,6 +125,7 @@ class LearningData(object):
                 return
             tries_left = 100
             found = False
+            other_rhs = None
             while (not found) and tries_left > 0:
                 other_rhs = random.choice(all_context)
                 if other_rhs in name_to_vector:

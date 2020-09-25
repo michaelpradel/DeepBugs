@@ -116,11 +116,12 @@ if __name__ == '__main__':
         learning_data = LearningDataSwappedBinOperands.LearningData()
     elif what == "IncorrectBinaryOperand":
         learning_data = LearningDataIncorrectBinaryOperand.LearningData()
-    ##not yet implemented
+    elif what == "IncorrectAssignment":
+       learning_data = LearningDataIncorrectAssignment.LearningData()
     ##elif what == "MissingArg":
     ##    learning_data = LearningDataMissingArg.LearningData()
-    ##elif what == "IncorrectAssignment":
-    ##    learning_data = LearningDataIncorrectAssignment.LearningData()
+    ##not yet implemented
+
     else:
         print("Incorrect argument for 'what'")
         sys.exit(1)
