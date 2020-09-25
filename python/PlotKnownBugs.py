@@ -10,8 +10,12 @@ parser.add_argument(
     '--warnings', help='File with warnings reported by BugFind.py', nargs="+")
 
 
-bug_patterns = ["swapped_args"]
-embeddings = [ "emb100_FT_orig", "emb100_FT_counterfitted2"]
+bug_patterns = ["swapped_args", "bin_operator", "bin_operand"]
+embeddings_to_color = {
+    "emb100_FT_orig": "red",
+    "emb100_FT_counterfitted2": "green"
+}
+embeddings = embeddings_to_color.keys()
 
 ground_truth_dir_prefix = "./data/known_bugs/js_data_relevant_"
 plot_dir = "./data/known_bugs/plots"
@@ -46,7 +50,8 @@ def read_warnings(warning_file):
 
 def read_ground_truth(bug_pattern):
     ground_truth_dir = f"{ground_truth_dir_prefix}{bug_pattern}"
-    files = [f for f in listdir(ground_truth_dir) if isfile(join(ground_truth_dir, f))]
+    files = [f for f in listdir(ground_truth_dir)
+             if isfile(join(ground_truth_dir, f))]
     nb_buggy = len([f for f in files if "_buggy.json" in f])
     nb_fixed = len([f for f in files if "_fixed.json" in f])
     return nb_buggy, nb_fixed
@@ -67,13 +72,13 @@ def compute_precision_recall(nb_buggy, nb_fixed, buggy_warnings_probabs, fixed_w
             if p >= t:
                 all_warnings += 1
 
-        precision = correct_warnings / all_warnings
+        precision = correct_warnings / all_warnings if all_warnings > 0 else 0
         recall = correct_warnings / nb_buggy
 
         print(f"At t={t}, {correct_warnings}/{all_warnings} warnings are correct; p={round(precision, 2)}, r={round(recall, 2)}")
 
         threshold_to_precision_recall[t] = [precision, recall]
-    
+
     return threshold_to_precision_recall
 
 
@@ -87,9 +92,11 @@ def plot_precision_recall(embedding_to_results, bug_pattern):
             precisions.append(pr[0])
             recalls.append(pr[1])
 
-        plt.plot(thresholds, precisions, label=f"Precision of {embedding}")
-        plt.plot(thresholds, recalls, label=f"Recall of {embedding}")
-        
+        plt.plot(thresholds, precisions,
+                 label=f"Precision of {embedding}", color=embeddings_to_color[embedding])
+        plt.plot(thresholds, recalls, label=f"Recall of {embedding}",
+                 linestyle="dashed", color=embeddings_to_color[embedding])
+
     plt.legend()
     plt.xlabel("Threshold for reporting bugs")
     plt.ylabel("Precision and recall")
@@ -106,10 +113,12 @@ if __name__ == "__main__":
         embedding_to_results = {}
         for embedding in embeddings:
             print(f"\n== {embedding}: ==")
-            buggy_warning_file, fixed_warning_file = find_warning_files(warning_files, bug_pattern, embedding)
+            buggy_warning_file, fixed_warning_file = find_warning_files(
+                warning_files, bug_pattern, embedding)
             buggy_warnings = read_warnings(buggy_warning_file)
             fixed_warnings = read_warnings(fixed_warning_file)
             nb_buggy, nb_fixed = read_ground_truth(bug_pattern)
-            threshold_to_precision_recall = compute_precision_recall(nb_buggy, nb_fixed, buggy_warnings, fixed_warnings)
+            threshold_to_precision_recall = compute_precision_recall(
+                nb_buggy, nb_fixed, buggy_warnings, fixed_warnings)
             embedding_to_results[embedding] = threshold_to_precision_recall
         plot_precision_recall(embedding_to_results, bug_pattern)
