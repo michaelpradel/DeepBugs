@@ -10,7 +10,7 @@ parser.add_argument(
     '--warnings', help='File with warnings reported by BugFind.py', nargs="+")
 
 
-bug_patterns = ["swapped_args", "bin_operator", "bin_operand"]
+bug_patterns = ["swapped_args", "bin_operator", "bin_operand", "assignment"]
 embeddings_to_color = {
     "emb100_FT_orig": "red",
     "emb100_FT_counterfitted2": "green"
@@ -58,7 +58,7 @@ def read_ground_truth(bug_pattern):
 
 
 def compute_precision_recall(nb_buggy, nb_fixed, buggy_warnings_probabs, fixed_warnings_probabs):
-    threshold_to_precision_recall = {}
+    threshold_to_precision_recall_bugs = {}
     print(f"Buggy warnings probabs: {buggy_warnings_probabs}")
     print(f"Fixed warnings probabs: {fixed_warnings_probabs}")
     for t in np.arange(0.5, 1, 0.05):
@@ -77,20 +77,22 @@ def compute_precision_recall(nb_buggy, nb_fixed, buggy_warnings_probabs, fixed_w
 
         print(f"At t={t}, {correct_warnings}/{all_warnings} warnings are correct; p={round(precision, 2)}, r={round(recall, 2)}")
 
-        threshold_to_precision_recall[t] = [precision, recall]
+        threshold_to_precision_recall_bugs[t] = [precision, recall, nb_buggy]
 
-    return threshold_to_precision_recall
+    return threshold_to_precision_recall_bugs
 
 
 def plot_precision_recall(embedding_to_results, bug_pattern):
-    for embedding, threshold_to_precision_recall in embedding_to_results.items():
+    nb_bugs = -1
+    for embedding, threshold_to_precision_recall_bugs in embedding_to_results.items():
         thresholds = []
         precisions = []
         recalls = []
-        for t, pr in threshold_to_precision_recall.items():
+        for t, prb in threshold_to_precision_recall_bugs.items():
             thresholds.append(t)
-            precisions.append(pr[0])
-            recalls.append(pr[1])
+            precisions.append(prb[0])
+            recalls.append(prb[1])
+            nb_bugs = prb[2]
 
         plt.plot(thresholds, precisions,
                  label=f"Precision of {embedding}", color=embeddings_to_color[embedding])
@@ -100,8 +102,9 @@ def plot_precision_recall(embedding_to_results, bug_pattern):
     plt.legend()
     plt.xlabel("Threshold for reporting bugs")
     plt.ylabel("Precision and recall")
+    plt.title(f"{bug_pattern} ({nb_bugs} bugs)")
     plt.tight_layout()
-    out_filename = f"{plot_dir}/precision_recall_{bug_pattern}.pdf"
+    out_filename = f"{plot_dir}/precision_recall_{bug_pattern}.png"
     plt.savefig(out_filename)
     plt.close()
 
@@ -118,7 +121,7 @@ if __name__ == "__main__":
             buggy_warnings = read_warnings(buggy_warning_file)
             fixed_warnings = read_warnings(fixed_warning_file)
             nb_buggy, nb_fixed = read_ground_truth(bug_pattern)
-            threshold_to_precision_recall = compute_precision_recall(
+            threshold_to_precision_recall_bugs = compute_precision_recall(
                 nb_buggy, nb_fixed, buggy_warnings, fixed_warnings)
-            embedding_to_results[embedding] = threshold_to_precision_recall
+            embedding_to_results[embedding] = threshold_to_precision_recall_bugs
         plot_precision_recall(embedding_to_results, bug_pattern)

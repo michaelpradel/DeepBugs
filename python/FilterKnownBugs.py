@@ -11,7 +11,7 @@ parser.add_argument(
     '--changes', help='JSON file with single-line code changes', required=True)
 
 js_data_dir = "data/known_bugs/js_data/"
-data_kinds = ["assignments"]  # ["swappedArgs", "binOps"]
+data_kinds = ["assignments", "swappedArgs", "binOps"]
 js_data_dir_calls = "data/known_bugs/js_data_relevant_swapped_args/"
 js_data_dir_bin_operators = "data/known_bugs/js_data_relevant_bin_operator/"
 js_data_dir_bin_operands = "data/known_bugs/js_data_relevant_bin_operand/"
@@ -101,6 +101,8 @@ def is_relevant_change_swapped_args(buggy_candidate, fixed_candidate):
             and len(fixed_candidate["arguments"]) == 2
             and buggy_candidate["arguments"][0] == fixed_candidate["arguments"][1]
             and buggy_candidate["arguments"][1] == fixed_candidate["arguments"][0]):
+        print(
+            f"Swapped arguments bug fix: {buggy_candidate['callee']}({buggy_candidate['arguments'][0]}, {buggy_candidate['callee'][1]}) --> {fixed_candidate['callee']}({fixed_candidate['arguments'][0]}, {fixed_candidate['callee'][1]})")
         return True
     return False
 
@@ -111,6 +113,8 @@ def is_relevant_change_bin_operator(buggy_candidate, fixed_candidate):
             and buggy_candidate["leftType"] == fixed_candidate["leftType"]
             and buggy_candidate["rightType"] == fixed_candidate["rightType"]
             and buggy_candidate["op"] != fixed_candidate["op"]):
+        print(
+            f"Binary operator bug fix: {buggy_candidate['left']} {buggy_candidate['op']} {buggy_candidate['right']} --> {fixed_candidate['left']} {fixed_candidate['op']} {fixed_candidate['right']}")
         return True
     return False
 
@@ -120,11 +124,15 @@ def is_relevant_change_bin_operand(buggy_candidate, fixed_candidate):
     if (buggy_candidate["left"] != fixed_candidate["left"]
             and buggy_candidate["right"] == fixed_candidate["right"]
             and buggy_candidate["op"] == fixed_candidate["op"]):
+        print(
+            f"Binary operand bug fix: {buggy_candidate['left']} {buggy_candidate['op']} {buggy_candidate['right']} --> {fixed_candidate['left']} {fixed_candidate['op']} {fixed_candidate['right']}")
         return True
     # right operand changes
     elif (buggy_candidate["right"] != fixed_candidate["right"]
             and buggy_candidate["left"] == fixed_candidate["left"]
             and buggy_candidate["op"] == fixed_candidate["op"]):
+        print(
+            f"Binary operand bug fix: {buggy_candidate['left']} {buggy_candidate['op']} {buggy_candidate['right']} --> {fixed_candidate['left']} {fixed_candidate['op']} {fixed_candidate['right']}")
         return True
     return False
 
@@ -132,6 +140,8 @@ def is_relevant_change_bin_operand(buggy_candidate, fixed_candidate):
 def is_relevant_change_assignment(buggy_candidate, fixed_candidate):
     if (buggy_candidate["lhs"] != fixed_candidate["lhs"]
             or buggy_candidate["rhs"] != fixed_candidate["rhs"]):
+        print(
+            f"Assignment bug fix: {buggy_candidate['lhs']} = {buggy_candidate['rhs']} --> {fixed_candidate['lhs']} = {fixed_candidate['rhs']}")
         return True
     return False
 
