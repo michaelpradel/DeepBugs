@@ -1,24 +1,20 @@
 '''
 Created on Nov 13, 2017
 
-@author: Michael Pradel
-
-Last changed in July, 2020
-
-@by: Sabine Zach
+@author: Michael Pradel, Sabine Zach
 '''
 
 import Util
 from collections import namedtuple
 import random
 
-from HyperParameters import type_embedding_size, node_type_embedding_size
+from HyperParameters import type_embedding_size
 
-operator_embedding_size = 30   #the number should correspond to the maximum
-                               #length of the operator vector
-                               #if not set, it could accidently happen, that
-                               #the operator vector is to short
-                               #and as a result is not compatible with the model!
+operator_embedding_size = 30  # the number should correspond to the maximum
+# length of the operator vector
+# if not set, it could accidently happen, that
+# the operator vector is to short
+# and as a result is not compatible with the model!
 
 
 class CodePiece(object):
@@ -27,21 +23,23 @@ class CodePiece(object):
         self.right = right
         self.op = op
         self.src = src
-    
+
     def to_message(self):
         return str(self.src) + " | " + str(self.left) + " | " + str(self.op) + " | " + str(self.right)
 
+
 Operand = namedtuple('Operand', ['op', 'type'])
-    
+
+
 class LearningData(object):
     def __init__(self):
-        self.file_to_operands = dict() # string to set of Operands
+        self.file_to_operands = dict()  # string to set of Operands
         self.stats = {}
 
     def resetStats(self):
         self.stats = {}
 
-    def pre_scan(self, first_data_paths, second_data_paths = []):
+    def pre_scan(self, first_data_paths, second_data_paths=[]):
         all_operators_set = set()
         for bin_op in Util.DataReader(first_data_paths):
             file = bin_op["src"].split(" : ")[0]
@@ -53,8 +51,8 @@ class LearningData(object):
 
             all_operators_set.add(bin_op["op"])
         if second_data_paths == []:
-           self.all_operators = list(all_operators_set)
-           return
+            self.all_operators = list(all_operators_set)
+            return
 
         for bin_op in Util.DataReader(second_data_paths):
             file = bin_op["src"].split(" : ")[0]
@@ -80,18 +78,21 @@ class LearningData(object):
             return
         if not (right in name_to_vector):
             return
-        
+
         left_vector = name_to_vector[left]
         right_vector = name_to_vector[right]
         operator_vector = [0] * operator_embedding_size
         operator_vector[self.all_operators.index(operator)] = 1
-        left_type_vector = type_to_vector.get(left_type, [0]*type_embedding_size)
-        right_type_vector = type_to_vector.get(right_type, [0]*type_embedding_size)
+        left_type_vector = type_to_vector.get(
+            left_type, [0]*type_embedding_size)
+        right_type_vector = type_to_vector.get(
+            right_type, [0]*type_embedding_size)
         parent_vector = node_type_to_vector[parent]
         grand_parent_vector = node_type_to_vector[grand_parent]
 
         # for all xy-pairs: y value = probability that incorrect
-        x_correct = left_vector + right_vector + operator_vector + left_type_vector + right_type_vector + parent_vector + grand_parent_vector
+        x_correct = left_vector + right_vector + operator_vector + \
+            left_type_vector + right_type_vector + parent_vector + grand_parent_vector
         y_correct = [0]
         xs.append(x_correct)
         ys.append(y_correct)
@@ -113,25 +114,28 @@ class LearningData(object):
                 if other_operand.op in name_to_vector and other_operand.op != to_replace_operand:
                     found = True
                 tries_left -= 1
-            
+
             if not found:
                 return
-        
+
             other_operand_vector = name_to_vector[other_operand.op]
             other_operand_type_vector = type_to_vector[other_operand.type]
             # replace one operand with the alternative one
             if replace_left:
-                x_incorrect = other_operand_vector + right_vector + operator_vector + other_operand_type_vector + right_type_vector + parent_vector + grand_parent_vector
+                x_incorrect = other_operand_vector + right_vector + operator_vector + \
+                    other_operand_type_vector + right_type_vector + \
+                    parent_vector + grand_parent_vector
             else:
-                x_incorrect = left_vector + other_operand_vector + operator_vector + right_type_vector + other_operand_type_vector + parent_vector + grand_parent_vector
+                x_incorrect = left_vector + other_operand_vector + operator_vector + \
+                    right_type_vector + other_operand_type_vector + \
+                    parent_vector + grand_parent_vector
             y_incorrect = [1]
             xs.append(x_incorrect)
             ys.append(y_incorrect)
             code_pieces.append(CodePiece(right, left, operator, src))
-        
+
     def anomaly_score(self, y_prediction_orig, y_prediction_changed):
         return y_prediction_orig
-    
+
     def normal_score(self, y_prediction_orig, y_prediction_changed):
         return y_prediction_changed
-            

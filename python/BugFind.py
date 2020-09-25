@@ -1,22 +1,15 @@
 '''
 Created on Jun 23, 2017
 
-@author: Michael Pradel
-
-Last Changed on Sept 08, 2020
-
-@by: Sabine Zach
+@author: Michael Pradel, Sabine Zach
 '''
 
 import sys
 import json
 from os.path import join
 from os import getcwd
-from collections import Counter, namedtuple
-import math
-from tensorflow.python.keras.models import Sequential, load_model
-from tensorflow.python.keras.layers.core import Dense, Dropout
-import random
+from collections import namedtuple
+from tensorflow.python.keras.models import load_model
 import time
 import numpy as np
 import Util
@@ -25,11 +18,10 @@ import LearningDataBinOperator
 import LearningDataSwappedBinOperands
 import LearningDataIncorrectBinaryOperand
 import LearningDataIncorrectAssignment
-##not yet implemented
-##import LearningDataMissingArg
 
 
 Anomaly = namedtuple("Anomaly", ["message", "score"])
+
 
 def parse_data_paths(args):
     new_data_paths = []
@@ -47,21 +39,25 @@ def parse_data_paths(args):
                 sys.exit(0)
     return new_data_paths
 
+
 def prepare_xy_pairs(gen_negatives, data_paths, learning_data):
     xs = []
     ys = []
-    code_pieces = [] # keep calls in addition to encoding as x,y pairs (to report detected anomalies)
-    
+    # keep calls in addition to encoding as x,y pairs (to report detected anomalies)
+    code_pieces = []
+
     for code_piece in Util.DataReader(data_paths):
-        learning_data.code_to_xy_pairs(gen_negatives, code_piece, xs, ys, name_to_vector, type_to_vector, node_type_to_vector, code_pieces)
+        learning_data.code_to_xy_pairs(gen_negatives, code_piece, xs, ys,
+                                       name_to_vector, type_to_vector, node_type_to_vector, code_pieces)
     x_length = len(xs[0])
-    
+
     print("Stats: " + str(learning_data.stats))
     print("Number of x,y pairs: " + str(len(xs)))
     print("Length of x vectors: " + str(x_length))
     xs = np.array(xs)
     ys = np.array(ys)
     return [xs, ys, code_pieces]
+
 
 def sample_xy_pairs(xs, ys, number_buggy):
     sampled_xs = []
@@ -70,13 +66,15 @@ def sample_xy_pairs(xs, ys, number_buggy):
     for i, y in enumerate(ys):
         if y == [1]:
             buggy_indices.append(i)
-    sampled_buggy_indices = set(np.random.choice(buggy_indices, size=number_buggy, replace=False))
+    sampled_buggy_indices = set(np.random.choice(
+        buggy_indices, size=number_buggy, replace=False))
     for i, x in enumerate(xs):
         y = ys[i]
         if y == [0] or i in sampled_buggy_indices:
             sampled_xs.append(x)
             sampled_ys.append(y)
     return sampled_xs, sampled_ys
+
 
 if __name__ == '__main__':
     # arguments (for learning new model): what <p_threshold> --load <model file> <name to vector file> <type to vector file> <AST node type to vector file> --newData <list of data files in json format>
@@ -88,7 +86,6 @@ if __name__ == '__main__':
     #                  IncorrectAssignment
     #
     # not yet implemented bug patterns are the following:
-    #
     # "MissingArg"
 
     print("BugFind started with " + str(sys.argv))
@@ -105,15 +102,15 @@ if __name__ == '__main__':
     else:
         print("Incorrect arguments")
         sys.exit(1)
-    
+
     with open(name_to_vector_file) as f:
         name_to_vector = json.load(f)
     with open(type_to_vector_file) as f:
         type_to_vector = json.load(f)
     with open(node_type_to_vector_file) as f:
         node_type_to_vector = json.load(f)
-    
-    #-------------------------------------Find------------------------------------------
+
+    # -------------------------------------Find------------------------------------------
     time_start = time.time()
 
     if what == "SwappedArgs":
@@ -125,51 +122,55 @@ if __name__ == '__main__':
     elif what == "IncorrectBinaryOperand":
         learning_data = LearningDataIncorrectBinaryOperand.LearningData()
     elif what == "IncorrectAssignment":
-       learning_data = LearningDataIncorrectAssignment.LearningData()
-    ##not yet used
-    ##elif what == "MissingArg":
+        learning_data = LearningDataIncorrectAssignment.LearningData()
+    # not yet used
+    # elif what == "MissingArg":
     ##    learning_data = LearningDataMissingArg.LearningData()
     else:
         print("Incorrect argument for 'what'")
         sys.exit(1)
-    
+
     print("Statistics on new data:")
     learning_data.pre_scan(new_data_paths)
     learning_data.resetStats()
-    
+
     # prepare x,y pairs
     print("Preparing xy pairs for new data:")
-    xs_newdata, ys_dummy, code_pieces_prediction = prepare_xy_pairs(False, new_data_paths, learning_data)
+    xs_newdata, ys_dummy, code_pieces_prediction = prepare_xy_pairs(
+        False, new_data_paths, learning_data)
     x_length = len(xs_newdata[0])
 
     print("New Data examples   : " + str(len(xs_newdata)))
     print(learning_data.stats)
-    
+
     # use already generated model (see DeepBugs - Part I - LearnBugs)
     model = load_model(model_file)
     print("Loaded model.")
 
-    ##predict ys for every selected piece of code
+    # predict ys for every selected piece of code
     ys_prediction = model.predict(xs_newdata)
 
     time_done = time.time()
-    print("Time for prediction (seconds): " + str(round(time_done - time_start)))
+    print("Time for prediction (seconds): " +
+          str(round(time_done - time_start)))
 
-    ##------------------------------------------------
+    # ------------------------------------------------
     # produce prediction message
     predictions = []
 
     for idx in range(0, len(xs_newdata)):
         p = ys_prediction[idx][0]    # probab, expect 0, when code is correct
         c = code_pieces_prediction[idx]
-        message = "Prediction : " + str(p) + " | " + what + " | " + c.to_message()
+        message = "Prediction : " + \
+            str(p) + " | " + what + " | " + c.to_message()
 
-        #only pick codepieces with prediction > p
+        # only pick codepieces with prediction > p
         if p > p_threshold:
             predictions.append(message)
 
     if predictions == []:
-        no_examples = "No data examples found in input data with prediction > " + str(p_threshold)
+        no_examples = "No data examples found in input data with prediction > " + \
+            str(p_threshold)
         predictions.append(no_examples)
 
     # log the messages to file
@@ -186,6 +187,6 @@ if __name__ == '__main__':
         print(message + "\n")
     print("------------\n")
     print("Predictions finished")
-    ##------------------------------------------------
+    # ------------------------------------------------
 
-    #-------------------------------------Find------------------------------------------
+    # -------------------------------------Find------------------------------------------

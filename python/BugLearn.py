@@ -1,24 +1,19 @@
 '''
 Created on Jun 23, 2017
 
-@author: Michael Pradel
-
-Last Changed on July 28, 2020
-
-@by: Sabine Zach
+@author: Michael Pradel, Sabine Zach
 '''
 
 import sys
 import json
 from os.path import join
 from os import getcwd
-from collections import Counter, namedtuple
+from collections import namedtuple
 import math
 
-from tensorflow.python.keras.models import Sequential, load_model
+from tensorflow.python.keras.models import Sequential
 from tensorflow.python.keras.layers.core import Dense, Dropout
 
-import random
 import time
 import numpy as np
 import Util
@@ -27,7 +22,6 @@ import LearningDataBinOperator
 import LearningDataSwappedBinOperands
 import LearningDataIncorrectBinaryOperand
 import LearningDataIncorrectAssignment
-import LearningDataMissingArg
 
 
 Anomaly = namedtuple("Anomaly", ["message", "score"])
