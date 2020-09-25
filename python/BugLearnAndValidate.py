@@ -116,13 +116,13 @@ if __name__ == '__main__':
         learning_data = LearningDataSwappedBinOperands.LearningData()
     elif what == "IncorrectBinaryOperand":
         learning_data = LearningDataIncorrectBinaryOperand.LearningData()
+    elif what == "IncorrectAssignment":
+       learning_data = LearningDataIncorrectAssignment.LearningData()
     ## not yet implemented
-    ##elif what == "IncorrectAssignment":
-    ##    learning_data = LearningDataIncorrectAssignment.LearningData()
     ##elif what == "MissingArg":
     ##    learning_data = LearningDataMissingArg.LearningData()
-    elif what == "IncorrectAssignment_with_parents":
-        learning_data = LearningDataIncorrectAssignment_with_parents.LearningData()
+    # elif what == "IncorrectAssignment_with_parents":
+    #     learning_data = LearningDataIncorrectAssignment_with_parents.LearningData()
     else:
         print("Incorrect argument for 'what'")
         sys.exit(1)
@@ -131,10 +131,9 @@ if __name__ == '__main__':
     learning_data.pre_scan(training_data_paths, validation_data_paths)
     
     # prepare x,y pairs for learning and validation, therefore generate negatives
-    gen_negatives = True
     print("Preparing xy pairs for training data:")
     learning_data.resetStats()
-    xs_training, ys_training, _ = prepare_xy_pairs(gen_negatives, training_data_paths, learning_data)
+    xs_training, ys_training, _ = prepare_xy_pairs(True, training_data_paths, learning_data)
     x_length = len(xs_training[0])
     print("Training examples   : " + str(len(xs_training)))
     print(learning_data.stats)

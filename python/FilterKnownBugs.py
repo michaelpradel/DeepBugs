@@ -183,7 +183,7 @@ def find_relevant_changes(json_file_pairs, commit_to_line):
                         [buggy_candidate, fixed_candidate, commit])
                     print(
                         f"Relevant binary operand pair: {buggy_file} at line {line}")
-            if data_kind == "assignment":
+            if data_kind == "assignments":
                 if is_relevant_change_assignment(buggy_candidate, fixed_candidate):
                     relevant_changes_assignment.append(
                         [buggy_candidate, fixed_candidate, commit])
@@ -209,6 +209,9 @@ def find_json_file_pairs():
     fixed_files = [f for f in listdir(js_data_dir) if isfile(
         join(js_data_dir, f)) and "fixed" in f]
     for fixed_file in fixed_files:
+        if len([d for d in data_kinds if d in fixed_file]) == 0:
+            continue
+
         buggy_file = fixed_file.replace("_fixed_", "_buggy_")
         if isfile(join(js_data_dir, buggy_file)):
             result.append([join(js_data_dir, buggy_file),

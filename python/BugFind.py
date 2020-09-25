@@ -24,8 +24,8 @@ import LearningDataSwappedArgs
 import LearningDataBinOperator
 import LearningDataSwappedBinOperands
 import LearningDataIncorrectBinaryOperand
+import LearningDataIncorrectAssignment
 ##not yet implemented
-##import LearningDataIncorrectAssignment
 ##import LearningDataMissingArg
 
 
@@ -90,8 +90,6 @@ if __name__ == '__main__':
     # not yet implemented bug patterns are the following:
     #
     # "MissingArg"
-    # "IncorrectAssignment"
-    #
 
     print("BugFind started with " + str(sys.argv))
 
@@ -126,11 +124,11 @@ if __name__ == '__main__':
         learning_data = LearningDataSwappedBinOperands.LearningData()
     elif what == "IncorrectBinaryOperand":
         learning_data = LearningDataIncorrectBinaryOperand.LearningData()
+    elif what == "IncorrectAssignment":
+       learning_data = LearningDataIncorrectAssignment.LearningData()
     ##not yet used
     ##elif what == "MissingArg":
     ##    learning_data = LearningDataMissingArg.LearningData()
-    ##elif what == "IncorrectAssignment":
-    ##    learning_data = LearningDataIncorrectAssignment.LearningData()
     else:
         print("Incorrect argument for 'what'")
         sys.exit(1)
@@ -140,9 +138,8 @@ if __name__ == '__main__':
     learning_data.resetStats()
     
     # prepare x,y pairs
-    gen_negatives = False
     print("Preparing xy pairs for new data:")
-    xs_newdata, ys_dummy, code_pieces_prediction = prepare_xy_pairs(gen_negatives, new_data_paths, learning_data)
+    xs_newdata, ys_dummy, code_pieces_prediction = prepare_xy_pairs(False, new_data_paths, learning_data)
     x_length = len(xs_newdata[0])
 
     print("New Data examples   : " + str(len(xs_newdata)))

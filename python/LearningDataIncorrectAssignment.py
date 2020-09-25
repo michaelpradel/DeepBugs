@@ -35,7 +35,7 @@ class LearningData(object):
     def resetStats(self):
         self.stats = {}
 
-    def pre_scan(self, training_data_paths, validation_data_paths):
+    def pre_scan(self, training_data_paths, validation_data_paths = []):
         for assignment in Util.DataReader(training_data_paths):
             file = assignment["src"].split(" : ")[0]
             rhsides = self.file_to_RHSs.setdefault(file, set())

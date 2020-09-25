@@ -71,7 +71,7 @@ class LearningData(object):
         code_pieces.append(CodePiece(lhs, rhs, src))
         
         # find an alternative rhs in the same file
-        gen_negatives:
+        if gen_negatives:
             file = src.split(" : ")[0]
             all_RHSs = self.file_to_RHSs[file]
             tries_left = 100
