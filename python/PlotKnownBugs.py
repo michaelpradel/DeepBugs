@@ -7,13 +7,13 @@ import matplotlib.pyplot as plt
 
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    '--warnings', help='File with warnings reported by BugFind.py', nargs="+")
+    '--warnings', help='Files with warnings reported by BugFind.py', nargs="+")
 
 
-bug_patterns = ["swapped_args", "bin_operator", "bin_operand", "assignment"]
+bug_patterns = ["SwappedArgs", "BinOperator", "IncorrectBinaryOperand", "IncorrectAssignment"]
 embeddings_to_color = {
-    "emb100_FT_orig": "red",
-    "emb100_FT_counterfitted2": "green"
+    "FT_orig": "red",
+    "counterfitted2": "green"
 }
 embeddings = embeddings_to_color.keys()
 
