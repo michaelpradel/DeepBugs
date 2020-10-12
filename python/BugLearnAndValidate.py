@@ -10,6 +10,7 @@ from os.path import join
 from os import getcwd
 from collections import Counter, namedtuple
 import math
+import argparse
 
 from tensorflow.python.keras.models import Sequential
 from tensorflow.python.keras.layers.core import Dense, Dropout
@@ -24,30 +25,22 @@ import LearningDataIncorrectBinaryOperand
 import LearningDataIncorrectAssignment
 
 
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "--pattern", help="Kind of data to extract", choices=["SwappedArgs", "BinOperator", "SwappedBinOperands", "IncorrectBinaryOperand", "IncorrectAssignment"], required=True)
+parser.add_argument(
+    "--token_emb", help="JSON file with token embeddings", required=True)
+parser.add_argument(
+    "--type_emb", help="JSON file with type embeddings", required=True)
+parser.add_argument(
+    "--node_emb", help="JSON file with AST node embeddings", required=True)
+parser.add_argument(
+    "--training_data", help="JSON files with training data", required=True, nargs="+")
+parser.add_argument(
+    "--validation_data", help="JSON files with validation data", required=True, nargs="+")
+
+
 Anomaly = namedtuple("Anomaly", ["message", "score"])
-
-
-def parse_data_paths(args):
-    training_data_paths = []
-    eval_data_paths = []
-    mode = None
-    for arg in args:
-        if arg == "--trainingData":
-            assert mode == None
-            mode = "trainingData"
-        elif arg == "--validationData":
-            assert mode == "trainingData"
-            mode = "validationData"
-        else:
-            path = join(getcwd(), arg)
-            if mode == "trainingData":
-                training_data_paths.append(path)
-            elif mode == "validationData":
-                eval_data_paths.append(path)
-            else:
-                print("Incorrect arguments")
-                sys.exit(0)
-    return [training_data_paths, eval_data_paths]
 
 
 def prepare_xy_pairs(gen_negatives, data_paths, learning_data):
@@ -87,21 +80,16 @@ def sample_xy_pairs(xs, ys, number_buggy):
 
 
 if __name__ == '__main__':
-    # arguments (for learning new model): what --learn <name to vector file> <type to vector file> <AST node type to vector file> --trainingData <list of call data files> --validationData <list of call data files>
-    #   what is one of: SwappedArgs, BinOperator, SwappedBinOperands, IncorrectBinaryOperand, IncorrectAssignment, MissingArg
     print("BugDetection started with " + str(sys.argv))
     time_start = time.time()
-    what = sys.argv[1]
-    option = sys.argv[2]
-    if option == "--learn":
-        name_to_vector_file = join(getcwd(), sys.argv[3])
-        type_to_vector_file = join(getcwd(), sys.argv[4])
-        node_type_to_vector_file = join(getcwd(), sys.argv[5])
-        training_data_paths, validation_data_paths = parse_data_paths(
-            sys.argv[6:])
-    else:
-        print("Incorrect arguments")
-        sys.exit(1)
+
+    args = parser.parse_args()
+    pattern = args.pattern
+    name_to_vector_file = args.token_emb
+    type_to_vector_file = args.type_emb
+    node_type_to_vector_file = args.node_emb
+    training_data_paths = args.training_data
+    validation_data_paths = args.validation_data
 
     with open(name_to_vector_file) as f:
         name_to_vector = json.load(f)
@@ -110,22 +98,21 @@ if __name__ == '__main__':
     with open(node_type_to_vector_file) as f:
         node_type_to_vector = json.load(f)
 
-    if what == "SwappedArgs":
+    if pattern == "SwappedArgs":
         learning_data = LearningDataSwappedArgs.LearningData()
-    elif what == "BinOperator":
+    elif pattern == "BinOperator":
         learning_data = LearningDataBinOperator.LearningData()
-    elif what == "SwappedBinOperands":
+    elif pattern == "SwappedBinOperands":
         learning_data = LearningDataSwappedBinOperands.LearningData()
-    elif what == "IncorrectBinaryOperand":
+    elif pattern == "IncorrectBinaryOperand":
         learning_data = LearningDataIncorrectBinaryOperand.LearningData()
-    elif what == "IncorrectAssignment":
+    elif pattern == "IncorrectAssignment":
         learning_data = LearningDataIncorrectAssignment.LearningData()
-    # not yet implemented
-    # elif what == "MissingArg":
-    ##    learning_data = LearningDataMissingArg.LearningData()
     else:
-        print("Incorrect argument for 'what'")
-        sys.exit(1)
+        raise Exception(f"Unexpected bug pattern: {pattern}")
+    # not yet implemented
+    # elif pattern == "MissingArg":
+    ##    learning_data = LearningDataMissingArg.LearningData()
 
     print("Statistics on training data:")
     learning_data.pre_scan(training_data_paths, validation_data_paths)
@@ -165,7 +152,7 @@ if __name__ == '__main__':
     print("Preparing xy pairs for validation data:")
     learning_data.resetStats()
     xs_validation, ys_validation, code_pieces_validation = prepare_xy_pairs(
-        gen_negatives, validation_data_paths, learning_data)
+        True, validation_data_paths, learning_data)
     print("Validation examples : " + str(len(xs_validation)))
     print(learning_data.stats)
 

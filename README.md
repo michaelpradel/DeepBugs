@@ -58,17 +58,17 @@ Each bug detector addresses a particular bug pattern, e.g.:
 #### Step 2: Train a classifier to identify bugs
 
 A) Train and validate the classifier
-`python3 python/BugLearnAndValidate.py SwappedArgs --learn token_to_vector.json type_to_vector.json node_type_to_vector.json --trainingData calls_xx*.json --validationData calls_yy*.json`
+`python3 python/BugLearnAndValidate.py --pattern SwappedArgs --token_emb token_to_vector.json --type_emb type_to_vector.json --node_emb node_type_to_vector.json --training_data calls_xx*.json --validation_data calls_yy*.json`
 
   * The first argument selects the bug pattern.
   * The next three arguments are vector representations for tokens (here: identifiers and literals), for types, and for AST node types. These files are provided in the repository.
   * The remaining arguments are two lists of .json files. They contain the training and validation data extracted in Step 1.
   * After learning the bug detector, the command measures accurracy and recall w.r.t. seeded bugs and writes a list of potential bugs in the unmodified validation code (see `poss_anomalies.txt`).
 
-B) Train just to get a classifier
-`python3 python/BugLearn.py SwappedArgs --learn token_to_vector.json type_to_vector.json node_type_to_vector.json --trainingData calls_xx*.json --validationData calls_yy*.json`
+B) Train a classifier for later use
+`python3 python/BugLearn.py --pattern SwappedArgs --token_emb token_to_vector.json --type_emb type_to_vector.json --node_emb node_type_to_vector.json --training_data calls_xx*.json`
 
-  * The arguments are all the same as in case A)
+  * Optionally, pass --out some/dir to set the output directory for the trained model.
 
 Note that learning a bug detector from the very small corpus of 50 programs will yield a classifier with low accuracy that is unlikely to be useful. To leverage the full power of DeepBugs, you'll need a larger code corpus, e.g., the [JS150 corpus](http://www.srl.inf.ethz.ch/js150.php) mentioned above.
 
@@ -80,12 +80,6 @@ Finding bugs in one or more source files consists of these two steps:
 1) Extract code pieces
 2) Use a trained classifier to identify bugs
 
-Each bug detector addresses a particular bug pattern, e.g.:
-
-  * The `SwappedArgs` bug detector looks for accidentally swapped arguments of a function call, e.g., calling `setPoint(y,x)` instead of `setPoint(x,y)`.
-  * The `BinOperator` bug detector looks for incorrect operators in binary operations, e.g., `i <= len` instead of `i < len`.
-  * The `IncorrectBinaryOperand` bug detector looks for incorrect operands in binary operations, e.g., `height - x` instead of `height - y`.
-
 #### Step 1: Extract code pieces
 
 `node javascript/extractFromJS.js calls --files <list of files>`
@@ -95,12 +89,11 @@ Each bug detector addresses a particular bug pattern, e.g.:
 
 #### Step 2: Use a trained classifier to identify bugs
 
-`python3 python/BugFind.py SwappedArgs 0.95 --load model token_to_vector.json type_to_vector.json node_type_to_vector.json --newData calls_xx*.json`
+`python3 python/BugFind.py --pattern SwappedArgs --threshold 0.95 --model some/dir --token_emb token_to_vector.json --type_emb type_to_vector.json --node_emb node_type_to_vector.json --testing_data calls_xx*.json`
 
   * The first argument selects the bug pattern.
   * 0.95 is the threshold for reporting bugs; higher means fewer warnings of higher certainty.
-  * --load: will be deprecated within short time
-  * The next argument is the name of the trained classifier. Its path must be given relative to the main direcetory.
+  * --model sets the directory to load a trained model from.
   * The next three arguments are vector representations for tokens (here: identifiers and literals), for types, and for AST node types. These files are provided in the repository.
   * The remaining argument is a list of .json files. They contain the data extracted in Step 1.
   * The command examines every code piece and writes a list of potential bugs with its probability of being incorrect

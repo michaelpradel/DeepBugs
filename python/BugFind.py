@@ -18,26 +18,27 @@ import LearningDataBinOperator
 import LearningDataSwappedBinOperands
 import LearningDataIncorrectBinaryOperand
 import LearningDataIncorrectAssignment
+import argparse
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    "--pattern", help="Kind of data to extract", choices=["SwappedArgs", "BinOperator", "SwappedBinOperands", "IncorrectBinaryOperand", "IncorrectAssignment"], required=True)
+parser.add_argument(
+    "--token_emb", help="JSON file with token embeddings", required=True)
+parser.add_argument(
+    "--type_emb", help="JSON file with type embeddings", required=True)
+parser.add_argument(
+    "--node_emb", help="JSON file with AST node embeddings", required=True)
+parser.add_argument(
+    "--testing_data", help="JSON files with testing data", required=True, nargs="+")
+parser.add_argument(
+    "--model", help="Directory with trained model", required=True)
+parser.add_argument(
+    "--threshold", help="Threshold for reporting warnings (0.0 reports most, 1.0 reports fewest)", required=True)
 
 
 Anomaly = namedtuple("Anomaly", ["message", "score"])
-
-
-def parse_data_paths(args):
-    new_data_paths = []
-    mode = None
-    for arg in args:
-        if arg == "--newData":
-            assert mode == None
-            mode = "newData"
-        else:
-            path = join(getcwd(), arg)
-            if mode == "newData":
-                new_data_paths.append(path)
-            else:
-                print("Incorrect arguments")
-                sys.exit(0)
-    return new_data_paths
 
 
 def prepare_xy_pairs(gen_negatives, data_paths, learning_data):
@@ -77,31 +78,16 @@ def sample_xy_pairs(xs, ys, number_buggy):
 
 
 if __name__ == '__main__':
-    # arguments (for learning new model): what <p_threshold> --load <model file> <name to vector file> <type to vector file> <AST node type to vector file> --newData <list of data files in json format>
-    #  what is one of: SwappedArgs,
-    #                  BinOperator,
-    #                  SwappedBinOperands,
-    #                  IncorrectBinaryOperand,
-    #                  MissingArg
-    #                  IncorrectAssignment
-    #
-    # not yet implemented bug patterns are the following:
-    # "MissingArg"
-
     print("BugFind started with " + str(sys.argv))
 
-    what = sys.argv[1]
-    p_threshold = float(sys.argv[2])
-    option = sys.argv[3]
-    if option == "--load":
-        model_file = sys.argv[4]
-        name_to_vector_file = join(getcwd(), sys.argv[5])
-        type_to_vector_file = join(getcwd(), sys.argv[6])
-        node_type_to_vector_file = join(getcwd(), sys.argv[7])
-        new_data_paths = parse_data_paths(sys.argv[8:])
-    else:
-        print("Incorrect arguments")
-        sys.exit(1)
+    args = parser.parse_args()
+    pattern = args.pattern
+    name_to_vector_file = args.token_emb
+    type_to_vector_file = args.type_emb
+    node_type_to_vector_file = args.node_emb
+    new_data_paths = args.testing_data
+    p_threshold = float(args.threshold)
+    model_dir = args.model
 
     with open(name_to_vector_file) as f:
         name_to_vector = json.load(f)
@@ -113,22 +99,21 @@ if __name__ == '__main__':
     # -------------------------------------Find------------------------------------------
     time_start = time.time()
 
-    if what == "SwappedArgs":
+    if pattern == "SwappedArgs":
         learning_data = LearningDataSwappedArgs.LearningData()
-    elif what == "BinOperator":
+    elif pattern == "BinOperator":
         learning_data = LearningDataBinOperator.LearningData()
-    elif what == "SwappedBinOperands":
+    elif pattern == "SwappedBinOperands":
         learning_data = LearningDataSwappedBinOperands.LearningData()
-    elif what == "IncorrectBinaryOperand":
+    elif pattern == "IncorrectBinaryOperand":
         learning_data = LearningDataIncorrectBinaryOperand.LearningData()
-    elif what == "IncorrectAssignment":
+    elif pattern == "IncorrectAssignment":
         learning_data = LearningDataIncorrectAssignment.LearningData()
+    else:
+        raise Exception(f"Unexpected bug pattern: {pattern}")
     # not yet used
     # elif what == "MissingArg":
     ##    learning_data = LearningDataMissingArg.LearningData()
-    else:
-        print("Incorrect argument for 'what'")
-        sys.exit(1)
 
     print("Statistics on new data:")
     learning_data.pre_scan(new_data_paths)
@@ -143,8 +128,7 @@ if __name__ == '__main__':
     print("New Data examples   : " + str(len(xs_newdata)))
     print(learning_data.stats)
 
-    # use already generated model (see DeepBugs - Part I - LearnBugs)
-    model = load_model(model_file)
+    model = load_model(model_dir)
     print("Loaded model.")
 
     # predict ys for every selected piece of code
@@ -154,7 +138,6 @@ if __name__ == '__main__':
     print("Time for prediction (seconds): " +
           str(round(time_done - time_start)))
 
-    # ------------------------------------------------
     # produce prediction message
     predictions = []
 
@@ -162,7 +145,7 @@ if __name__ == '__main__':
         p = ys_prediction[idx][0]    # probab, expect 0, when code is correct
         c = code_pieces_prediction[idx]
         message = "Prediction : " + \
-            str(p) + " | " + what + " | " + c.to_message()
+            str(p) + " | " + pattern + " | " + c.to_message()
 
         # only pick codepieces with prediction > p
         if p > p_threshold:
@@ -187,6 +170,3 @@ if __name__ == '__main__':
         print(message + "\n")
     print("------------\n")
     print("Predictions finished")
-    # ------------------------------------------------
-
-    # -------------------------------------Find------------------------------------------
