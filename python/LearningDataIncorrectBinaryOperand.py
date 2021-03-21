@@ -116,6 +116,9 @@ class LearningData(object):
                 tries_left -= 1
 
             if not found:
+                xs.pop()
+                ys.pop()
+                code_pieces.pop()
                 return
 
             other_operand_vector = name_to_vector[other_operand.op]
